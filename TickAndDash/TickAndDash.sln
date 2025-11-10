@@ -1,0 +1,79 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30330.147
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TickAndDash", "TickAndDash\TickAndDash.csproj", "{2F717F7A-6A7E-4BFD-9827-B21ECD3B9EF8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TickAndDashReportingTool", "..\TickAndDashReportingTool\TickAndDashReportingTool\TickAndDashReportingTool.csproj", "{7952D3E5-C41C-4DB7-907C-11DCC2375546}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TickAndDashDAL", "TickAndDashDAL\TickAndDashDAL.csproj", "{2FB7A163-026A-455D-9EB9-8AD369BBFC6D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DriverManager", "DriverManager\DriverManager.csproj", "{2C417BC1-E3B8-41F1-8C0E-BA2FB1D5B6FE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TickAndDashSharedServices", "TickAndDashSharedServices\TickAndDashSharedServices.csproj", "{3E24F6CB-DEAA-46CA-A782-68465C8B7B4B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RiderQManager", "RiderQManager\RiderQManager.csproj", "{EC6EA26B-C285-4882-954C-6FE51FB8FBBA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2F717F7A-6A7E-4BFD-9827-B21ECD3B9EF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F717F7A-6A7E-4BFD-9827-B21ECD3B9EF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F717F7A-6A7E-4BFD-9827-B21ECD3B9EF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F717F7A-6A7E-4BFD-9827-B21ECD3B9EF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7952D3E5-C41C-4DB7-907C-11DCC2375546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7952D3E5-C41C-4DB7-907C-11DCC2375546}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7952D3E5-C41C-4DB7-907C-11DCC2375546}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7952D3E5-C41C-4DB7-907C-11DCC2375546}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FB7A163-026A-455D-9EB9-8AD369BBFC6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FB7A163-026A-455D-9EB9-8AD369BBFC6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FB7A163-026A-455D-9EB9-8AD369BBFC6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FB7A163-026A-455D-9EB9-8AD369BBFC6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C417BC1-E3B8-41F1-8C0E-BA2FB1D5B6FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C417BC1-E3B8-41F1-8C0E-BA2FB1D5B6FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C417BC1-E3B8-41F1-8C0E-BA2FB1D5B6FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C417BC1-E3B8-41F1-8C0E-BA2FB1D5B6FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E24F6CB-DEAA-46CA-A782-68465C8B7B4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E24F6CB-DEAA-46CA-A782-68465C8B7B4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E24F6CB-DEAA-46CA-A782-68465C8B7B4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E24F6CB-DEAA-46CA-A782-68465C8B7B4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC6EA26B-C285-4882-954C-6FE51FB8FBBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC6EA26B-C285-4882-954C-6FE51FB8FBBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC6EA26B-C285-4882-954C-6FE51FB8FBBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC6EA26B-C285-4882-954C-6FE51FB8FBBA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {67289692-8E8B-41ED-9ED5-B90F7FF170A5}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 7
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = http://192.168.2.70:8090/tfs/tickanddash
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = TickAndDash\\TickAndDash.csproj
+		SccProjectName1 = TickAndDash
+		SccLocalPath1 = TickAndDash
+		SccProjectUniqueName2 = TickAndDashDAL\\TickAndDashDAL.csproj
+		SccProjectName2 = TickAndDashDAL
+		SccLocalPath2 = TickAndDashDAL
+		SccProjectUniqueName3 = ..\\TickAndDashReportingTool\\TickAndDashReportingTool\\TickAndDashReportingTool.csproj
+		SccProjectName3 = ../TickAndDashReportingTool/TickAndDashReportingTool
+		SccLocalPath3 = ..\\TickAndDashReportingTool\\TickAndDashReportingTool
+		SccProjectUniqueName4 = DriverManager\\DriverManager.csproj
+		SccProjectName4 = DriverManager
+		SccLocalPath4 = DriverManager
+		SccProjectUniqueName5 = TickAndDashSharedServices\\TickAndDashSharedServices.csproj
+		SccProjectName5 = TickAndDashSharedServices
+		SccLocalPath5 = TickAndDashSharedServices
+		SccProjectUniqueName6 = RiderQManager\\RiderQManager.csproj
+		SccProjectName6 = RiderQManager
+		SccLocalPath6 = RiderQManager
+	EndGlobalSection
+EndGlobal
