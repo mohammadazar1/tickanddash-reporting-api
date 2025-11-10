@@ -1,0 +1,42 @@
+{
+  "ConnectionStrings": {
+    "TickAndDash": "YOUR_CONNECTION_STRING_HERE"
+  },
+  "Serilog": {
+    "Using": [ "Serilog.Sinks.Console", "Serilog.Sinks.File" ],
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Information",
+        "System": "Warning",
+        "Hangfire": "Information"
+      }
+    },
+    "ApplicationLifecycleModule.IsEnabled": "false",
+    "WriteTo": [
+      { "Name": "Console" },
+      {
+        "Name": "Seq",
+        "Args": {
+          "serverUrl": "http://localhost:5341"
+        }
+      }
+    ],
+    "Properties": {
+      "ApplicationName": "TickAndDash"
+    }
+  },
+  "AllowedHosts": "*",
+  "SwaggerOptions": {
+    "JsonRoute": "swagger/{documentName}/swagger.json",
+    "Description": "Tick&Dash APIs",
+    "UIEndpoint": "v1/swagger.json"
+  },
+  "Key": "YOUR_KEY_HERE",
+  "Issuer": "Universe",
+  "Audience": "PalestineCab",
+  "GeoapifyOptions": {
+    "APIKey": "YOUR_GEOAPIFY_KEY"
+  }
+}
+
