@@ -1,0 +1,24 @@
+{
+  "ConnectionStrings": {
+    "TickAndDash": "YOUR_CONNECTION_STRING_HERE"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*",
+  "SwaggerOptions": {
+    "JsonRoute": "swagger/{documentName}/swagger.json",
+    "Description": "Tick&Dash Reporting APIs",
+    "UIEndpoint": "v1/swagger.json"
+  },
+  "Key": "YOUR_KEY_HERE",
+  "Issuer": "DriversAdmins",
+  "Audience": "PalestineCab",
+  "DigitalCodexToken": "YOUR_TOKEN_HERE",
+  "DigitalCodexApiKey": "YOUR_API_KEY_HERE"
+}
+

@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
+    <DockerfileContext>..\..\TickAndDash</DockerfileContext>
+    <UserSecretsId>aacc2116-920f-4561-9d7c-b32b8741472f</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="MappingProfile\**" />
+    <Content Remove="MappingProfile\**" />
+    <EmbeddedResource Remove="MappingProfile\**" />
+    <None Remove="MappingProfile\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\TickAndDash\TickAndDashDAL\TickAndDashDAL.csproj" />
+  </ItemGroup>
+  
+  <!-- 
+  Note: The path above assumes the following structure:
+  TickAndDash-Reporting/
+    TickAndDashReportingTool/TickAndDashReportingTool/TickAndDashReportingTool.csproj (this file)
+    TickAndDash/TickAndDashDAL/TickAndDashDAL.csproj (referenced project)
+  
+  If the structure is different, update the path accordingly.
+  -->
+
+
+</Project>
