@@ -5,13 +5,14 @@ on:
     branches:
       - main
   workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   build:
     runs-on: windows-latest
-    permissions:
-      id-token: write
-      contents: read #This is required for actions/checkout
+     #This is required for actions/checkout
 
 
     steps:
@@ -67,6 +68,7 @@ jobs:
           app-name: 'TickAndDash'
           slot-name: 'Production'
           package: .
+
 
 
 
