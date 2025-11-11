@@ -10,6 +10,7 @@ jobs:
   build:
     runs-on: windows-latest
     permissions:
+      id-token: write
       contents: read #This is required for actions/checkout
 
 
@@ -66,6 +67,7 @@ jobs:
           app-name: 'TickAndDash'
           slot-name: 'Production'
           package: .
+
 
 
 
