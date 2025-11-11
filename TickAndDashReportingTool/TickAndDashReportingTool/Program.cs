@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 namespace TickAndDashReportingTool
 {
@@ -15,12 +12,11 @@ namespace TickAndDashReportingTool
         {
             try
             {
-            CreateHostBuilder(args).Build().Run();
-
+                CreateHostBuilder(args).Build().Run();
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine($"Application failed to start: {ex.Message}");
             }
         }
 
@@ -29,6 +25,10 @@ namespace TickAndDashReportingTool
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+
+                    // ✅ مهم جداً لـ Azure App Service
+                    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+                    webBuilder.UseUrls($"http://*:{port}");
                 });
     }
 }
