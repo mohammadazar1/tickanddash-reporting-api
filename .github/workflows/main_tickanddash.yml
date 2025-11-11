@@ -8,9 +8,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: read #This is required for actions/checkout
+
 
     steps:
       - name: Checkout code
@@ -65,6 +66,7 @@ jobs:
           app-name: 'TickAndDash'
           slot-name: 'Production'
           package: .
+
 
 
 
