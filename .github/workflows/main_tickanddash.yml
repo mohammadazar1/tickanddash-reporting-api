@@ -25,13 +25,16 @@ jobs:
       - name: Build with dotnet
         run: dotnet build TickAndDashReportingTool/TickAndDashReportingTool/TickAndDashReportingTool.csproj --configuration Release --no-restore
 
-      - name: Publish
+      - name: dotnet publish
         run: dotnet publish TickAndDashReportingTool/TickAndDashReportingTool/TickAndDashReportingTool.csproj -c Release -o ./publish --no-build
 
-      - name: Upload artifact for deployment
+      - name: Publish app
+        run: dotnet publish TickAndDashReportingTool/TickAndDashReportingTool/TickAndDashReportingTool.csproj -c Release -o ./publish --no-build
+
+      - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
+          name: dotnet-app
           path: ./publish
 
   deploy:
@@ -43,7 +46,7 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
+          name: dotnet-app
           path: ./publish
 
       - name: Deploy to Azure Web App
@@ -53,3 +56,4 @@ jobs:
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: ./publish
+
