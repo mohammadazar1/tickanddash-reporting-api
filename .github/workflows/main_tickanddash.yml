@@ -54,6 +54,6 @@ jobs:
         with:
           app-name: 'TickAndDash'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: ./publish
+          package: .
+
 
