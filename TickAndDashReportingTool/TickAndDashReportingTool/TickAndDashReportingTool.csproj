@@ -45,11 +45,7 @@
   
   If the structure is different, update the path accordingly.
   -->
-
-  <ItemGroup>
-    <Content Include="wwwroot\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+  
+  <!-- Note: wwwroot files are automatically included by .NET SDK Web, no need to explicitly include them -->
 
 </Project>
