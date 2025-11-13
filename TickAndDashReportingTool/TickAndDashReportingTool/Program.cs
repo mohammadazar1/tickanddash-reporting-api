@@ -10,13 +10,20 @@ namespace TickAndDashReportingTool
     {
         public static void Main(string[] args)
         {
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables() // Read from Azure App Service Configuration
+                .Build();
+
             try
             {
                 CreateHostBuilder(args).Build().Run();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Application failed to start: {ex.Message}");
+                // Log error if logging is configured
+                System.Diagnostics.Debug.WriteLine($"Application failed to start: {ex.Message}");
+                throw; // Re-throw to ensure Azure logs the error
             }
         }
 
@@ -25,10 +32,9 @@ namespace TickAndDashReportingTool
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-
-                    // ✅ مهم جداً لـ Azure App Service
-                    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-                    webBuilder.UseUrls($"http://*:{port}");
+                    // Azure App Service automatically sets the PORT environment variable
+                    // Don't override it, let Azure handle it
+                    // webBuilder.UseUrls() is not needed for Azure App Service
                 });
     }
 }

@@ -62,44 +62,50 @@ namespace TickAndDashReportingTool
                 appBuilder.Run(async context =>
                 {
                     var exceptionContext = context.Features.Get<IExceptionHandlerFeature>();
-                    var exception = exceptionContext.Error;
-                    var message = "Internal server Error";
+                    string message = "An error occurred while processing your request.";
 
                     context.Response.ContentType = "application/json";
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-                    if (exception != null)
+                    if (exceptionContext != null && exceptionContext.Error != null)
                     {
-                        var configuration = new ConfigurationBuilder()
-                           .AddJsonFile("appsettings.json")
-                           .Build();
+                        var exception = exceptionContext.Error;
+
+                        if (exception is HttpStatusException httpStatusException)
+                        {
+                            context.Response.StatusCode = (int)httpStatusException.StatusCode;
+                            message = httpStatusException.Message ?? message;
+                        }
+                        else
+                        {
+                            message = exception.Message ?? message;
+                        }
                     }
 
-                    if (exception is HttpStatusException httpStatusException)
-                    {
-                        context.Response.StatusCode = (int)httpStatusException.StatusCode;
-                        message = httpStatusException.Message;
-                    }
-
-                    var reposne = JsonConvert.SerializeObject(new
+                    var response = JsonConvert.SerializeObject(new
                     {
                         StatusCode = context.Response.StatusCode,
                         Success = false,
                         Message = message,
                     });
 
-                    await context.Response.WriteAsync(reposne);
+                    await context.Response.WriteAsync(response);
                 });
             });
 
             var swaggerOptions = new SwaggerOptions();
             Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
 
-            app.UseSwagger(option => { option.RouteTemplate = swaggerOptions.JsonRoute; });
+            // Use default values if SwaggerOptions are not configured
+            var jsonRoute = swaggerOptions.JsonRoute ?? "swagger/{documentName}/swagger.json";
+            var uiEndpoint = swaggerOptions.UiEndpoint ?? "v1/swagger.json";
+            var description = swaggerOptions.Description ?? "Tick&Dash Reporting Tool APIs";
+
+            app.UseSwagger(option => { option.RouteTemplate = jsonRoute; });
 
             app.UseSwaggerUI(option =>
             {
-                option.SwaggerEndpoint(swaggerOptions.UiEndpoint, swaggerOptions.Description);
+                option.SwaggerEndpoint(uiEndpoint, description);
             });
 
             app.UseStaticFiles();
