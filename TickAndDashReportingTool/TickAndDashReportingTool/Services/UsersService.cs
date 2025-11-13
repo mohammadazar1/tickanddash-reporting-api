@@ -107,21 +107,30 @@ namespace TickAndDashReportingTool.Services
 
         private string CreateToken(AuthUser user)
         {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user), "User cannot be null");
+            }
+
             var claims = new List<Claim>
             {
-                new Claim (JwtRegisteredClaimNames.UniqueName, user.Username),
+                new Claim (JwtRegisteredClaimNames.UniqueName, user.Username ?? ""),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.Name, user.Id.ToString()),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role ?? "User")
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Key"]));
+            var keyString = _configuration["Key"] ?? _configuration["Jwt:Key"] ?? "DefaultKeyForDevelopmentOnly12345678901234567890";
+            var issuer = _configuration["Issuer"] ?? _configuration["Jwt:Issuer"] ?? "TickAndDash";
+            var audience = _configuration["Audience"] ?? _configuration["Jwt:Audience"] ?? "TickAndDash";
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.Now.AddDays(30);
 
             var t = new JwtSecurityToken(
-                    _configuration["Issuer"],
-                    _configuration["Audience"],
+                    issuer,
+                    audience,
                     claims,
                     signingCredentials: creds
                 );
