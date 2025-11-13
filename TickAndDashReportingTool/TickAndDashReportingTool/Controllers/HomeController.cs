@@ -8,19 +8,19 @@ namespace TickAndDashReportingTool.Controllers
         [HttpGet("/")]
         public IActionResult Get()
         {
-            return Ok(new 
-            { 
-                message = "Tick & Dash Reporting Tool API is running!",
-                status = "OK",
-                version = "1.0",
-                timestamp = System.DateTime.UtcNow,
-                endpoints = new
-                {
-                    swagger = "/swagger",
-                    api = "/api",
-                    api_v1 = "/api/v1"
-                }
-            });
+            // Redirect to login page
+            return Redirect("/login.html");
+        }
+
+        [HttpGet("/login")]
+        public IActionResult LoginPage()
+        {
+            // Return login.html
+            return PhysicalFile(
+                System.IO.Path.Combine(
+                    System.IO.Directory.GetCurrentDirectory(),
+                    "wwwroot", "login.html"),
+                "text/html");
         }
     }
 }

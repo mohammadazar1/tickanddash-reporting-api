@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - Tick & Dash Reporting Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-create-admin {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .btn-create-admin:hover {
+            background: #f5f5f5;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .alert-info {
+            background: #eef;
+            color: #33c;
+            border: 1px solid #ccf;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .token-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            font-size: 12px;
+            word-break: break-all;
+            display: none;
+        }
+
+        .token-display h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .token-display code {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: block;
+            color: #333;
+        }
+
+        .copy-btn {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🚀 Tick & Dash</h1>
+            <p>Reporting Tool - تسجيل الدخول</p>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">اسم المستخدم (Username)</label>
+                <input type="text" id="username" name="username" required autocomplete="username" placeholder="أدخل اسم المستخدم">
+            </div>
+
+            <div class="form-group">
+                <label for="password">كلمة المرور (Password)</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="أدخل كلمة المرور">
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">
+                تسجيل الدخول
+            </button>
+        </form>
+
+        <button type="button" class="btn-create-admin" id="createAdminBtn">
+            إنشاء أول أدمن (Create First Admin)
+        </button>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p style="margin-top: 10px; color: #666;">جاري المعالجة...</p>
+        </div>
+
+        <div class="token-display" id="tokenDisplay">
+            <h3>✅ تم تسجيل الدخول بنجاح!</h3>
+            <p style="margin-bottom: 10px; color: #666;">استخدم هذا الـ Token للوصول إلى API:</p>
+            <code id="tokenValue"></code>
+            <button class="copy-btn" onclick="copyToken()">نسخ Token</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        const LOGIN_ENDPOINT = API_BASE_URL + '/api/report/Users/login';
+        const CREATE_ADMIN_ENDPOINT = API_BASE_URL + '/api/report/Users/create-first-admin';
+
+        const loginForm = document.getElementById('loginForm');
+        const createAdminBtn = document.getElementById('createAdminBtn');
+        const alertDiv = document.getElementById('alert');
+        const loadingDiv = document.getElementById('loading');
+        const loginBtn = document.getElementById('loginBtn');
+        const tokenDisplay = document.getElementById('tokenDisplay');
+
+        function showAlert(message, type = 'error') {
+            alertDiv.textContent = message;
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.style.display = 'block';
+            tokenDisplay.style.display = 'none';
+            
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            loadingDiv.style.display = show ? 'block' : 'none';
+            loginBtn.disabled = show;
+            createAdminBtn.disabled = show;
+        }
+
+        function displayToken(token) {
+            document.getElementById('tokenValue').textContent = token;
+            tokenDisplay.style.display = 'block';
+            alertDiv.style.display = 'none';
+        }
+
+        function copyToken() {
+            const token = document.getElementById('tokenValue').textContent;
+            navigator.clipboard.writeText(token).then(() => {
+                showAlert('تم نسخ Token بنجاح!', 'success');
+            }).catch(() => {
+                showAlert('فشل نسخ Token', 'error');
+            });
+        }
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showAlert('الرجاء إدخال اسم المستخدم وكلمة المرور');
+                return;
+            }
+
+            showLoading(true);
+            showAlert('جاري تسجيل الدخول...', 'info');
+
+            try {
+                const response = await fetch(LOGIN_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        Username: username,
+                        Password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.token) {
+                    showAlert('تم تسجيل الدخول بنجاح!', 'success');
+                    displayToken(data.token);
+                } else {
+                    const errorMessage = data.Message || data.message || 'فشل تسجيل الدخول. تحقق من اسم المستخدم وكلمة المرور.';
+                    showAlert(errorMessage);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('حدث خطأ أثناء الاتصال بالخادم. تأكد من أن الخادم يعمل.');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        createAdminBtn.addEventListener('click', async () => {
+            const username = prompt('أدخل اسم المستخدم للأدمن:', 'admin');
+            if (!username) return;
+
+            const password = prompt('أدخل كلمة المرور للأدمن:', 'Admin123!');
+            if (!password) return;
+
+            const msisdn = prompt('أدخل رقم الهاتف (اختياري):', '1234567890') || '1234567890';
+            const name = prompt('أدخل الاسم (اختياري):', 'Admin User') || 'Admin User';
+
+            showLoading(true);
+            showAlert('جاري إنشاء حساب الأدمن...', 'info');
+
+            try {
+                const response = await fetch(CREATE_ADMIN_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        Username: username,
+                        Password: password,
+                        Msisdn: msisdn,
+                        Name: name
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.Success) {
+                    showAlert('تم إنشاء حساب الأدمن بنجاح!', 'success');
+                    if (data.Data && data.Data.token) {
+                        displayToken(data.Data.token);
+                    } else {
+                        showAlert('تم إنشاء حساب الأدمن. يمكنك الآن تسجيل الدخول.', 'success');
+                    }
+                } else {
+                    const errorMessage = data.Message || data.message || 'فشل إنشاء حساب الأدمن.';
+                    showAlert(errorMessage);
+                }
+            } catch (error) {
+                console.error('Create admin error:', error);
+                showAlert('حدث خطأ أثناء الاتصال بالخادم. تأكد من أن الخادم يعمل.');
+            } finally {
+                showLoading(false);
+            }
+        });
+    </script>
+</body>
+</html>
+

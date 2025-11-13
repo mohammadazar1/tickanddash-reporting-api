@@ -100,7 +100,15 @@ namespace TickAndDashReportingTool.Services
                 }
 
                 // Check POS
-                var pos = _pointOfSalesDAL.GetPOSByUsername(loginUserRequest.Username);
+                var pos = (PointOfSales)null;
+                try
+                {
+                    pos = _pointOfSalesDAL.GetPOSByUsername(loginUserRequest.Username);
+                }
+                catch
+                {
+                    // If GetPOSByUsername fails, continue
+                }
 
                 if (pos != null)
                 {
