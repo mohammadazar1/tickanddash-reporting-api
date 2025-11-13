@@ -1,178 +1,45 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول - Tick & Dash Reporting Tool</title>
+    <title>Dashboard - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
-            margin: 0;
             padding: 0;
+            margin: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .main {
+            position: relative;
             min-height: 100vh;
-            display: flex;
+        }
+
+        .loader-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+            background: #333;
+            opacity: 0.8;
+            display: none;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
 
-        .login-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            animation: slideIn 0.5s ease-out;
+        .loader-container.show {
+            display: flex;
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .login-header h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        .login-header p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        .form-group input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-login:active {
-            transform: translateY(0);
-        }
-
-        .btn-login:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-create-admin {
-            width: 100%;
-            padding: 12px;
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
-        }
-
-        .btn-create-admin:hover {
-            background: #f5f5f5;
-        }
-
-        .alert {
-            padding: 12px 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        .alert-error {
-            background: #fee;
-            color: #c33;
-            border: 1px solid #fcc;
-        }
-
-        .alert-success {
-            background: #efe;
-            color: #3c3;
-            border: 1px solid #cfc;
-        }
-
-        .alert-info {
-            background: #eef;
-            color: #33c;
-            border: 1px solid #ccf;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #FEAE11;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 50px;
+            height: 50px;
             animation: spin 1s linear infinite;
-            margin: 0 auto;
         }
 
         @keyframes spin {
@@ -180,148 +47,325 @@
             100% { transform: rotate(360deg); }
         }
 
-        .token-display {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 10px;
-            font-size: 12px;
-            word-break: break-all;
-            display: none;
+        .wave {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 100%;
+            z-index: -1;
         }
 
-        .token-display h3 {
-            margin-bottom: 10px;
+        .container {
+            margin: 0 auto;
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-gap: 7rem;
+            padding: 0 2rem;
+        }
+
+        .img {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .login-content {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            text-align: center;
+        }
+
+        .img img {
+            width: 500px;
+        }
+
+        form {
+            width: 360px;
+        }
+
+        .login-content img {
+            height: 100px;
+        }
+
+        .login-content h2 {
+            margin: 15px 0;
             color: #333;
-            font-size: 14px;
+            font-size: 1.5rem;
         }
 
-        .token-display code {
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            display: block;
-            color: #333;
+        .login-content .input-div {
+            position: relative;
+            display: grid;
+            grid-template-columns: 7% 93%;
+            margin: 25px 0;
+            padding: 5px 0;
+            border-bottom: 2px solid #d9d9d9;
         }
 
-        .copy-btn {
-            margin-top: 10px;
-            padding: 8px 15px;
-            background: #667eea;
-            color: white;
+        .login-content .input-div.one {
+            margin-top: 0;
+        }
+
+        .i {
+            color: #d9d9d9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .i i {
+            transition: .3s;
+        }
+
+        .input-div > div {
+            position: relative;
+            height: 45px;
+        }
+
+        .input-div > div > h5 {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 18px;
+            transition: .3s;
+        }
+
+        .input-div:before, .input-div:after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            width: 0%;
+            height: 2px;
+            background-color: #FEAE11;
+            transition: .4s;
+        }
+
+        .input-div:before {
+            right: 50%;
+        }
+
+        .input-div:after {
+            left: 50%;
+        }
+
+        .input-div.focus:before, .input-div.focus:after {
+            width: 50%;
+        }
+
+        .input-div.focus > div > h5 {
+            top: -5px;
+            font-size: 15px;
+        }
+
+        .input-div.focus > .i > i {
+            color: #FEAE11;
+        }
+
+        .input-div > div > input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
+            outline: none;
+            background: none;
+            padding: 0.5rem 0.7rem;
+            font-size: 1.2rem;
+            color: #555;
         }
 
-        .copy-btn:hover {
-            background: #5568d3;
+        .input-div.pass {
+            margin-bottom: 4px;
+        }
+
+        a {
+            display: block;
+            text-align: right;
+            text-decoration: none;
+            color: #999;
+            font-size: 0.9rem;
+            transition: .3s;
+        }
+
+        a:hover {
+            color: #FEAE11;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            height: 50px;
+            border-radius: 3px;
+            outline: none;
+            border: none;
+            background-image: linear-gradient(to right, #FEAE11, #ffbf40, #FEAE11);
+            background-size: 200%;
+            font-size: 1.2rem;
+            color: #fff;
+            text-transform: uppercase;
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: .5s;
+        }
+
+        .btn:hover {
+            background-position: right;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .success {
+            color: green;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        @media screen and (max-width: 1050px) {
+            .container {
+                grid-gap: 5rem;
+            }
+        }
+
+        @media screen and (max-width: 1000px) {
+            form {
+                width: 290px;
+            }
+
+            .login-content h2 {
+                font-size: 2.4rem;
+                margin: 8px 0;
+            }
+
+            .img img {
+                width: 400px;
+            }
+        }
+
+        @media screen and (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .img {
+                display: none;
+            }
+
+            .wave {
+                display: none;
+            }
+
+            .login-content {
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
-            <h1>🚀 Tick & Dash</h1>
-            <p>Reporting Tool - تسجيل الدخول</p>
+    <div class="main">
+        <div class="loader-container" id="loaderContainer">
+            <div class="spinner"></div>
         </div>
 
-        <div id="alert" class="alert"></div>
-
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">اسم المستخدم (Username)</label>
-                <input type="text" id="username" name="username" required autocomplete="username" placeholder="أدخل اسم المستخدم">
+        <div class="container">
+            <div class="img">
+                <img src="assets/img/dashboard.svg" alt="Dashboard">
             </div>
 
-            <div class="form-group">
-                <label for="password">كلمة المرور (Password)</label>
-                <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="أدخل كلمة المرور">
+            <div class="login-content">
+                <form action="" id="loginForm">
+                    <img src="assets/img/logo.svg" class="avatar" alt="Logo">
+                    <h2>Dashboard</h2>
+                    <div class="input-div one" id="usernameDiv">
+                        <div class="i">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="div">
+                            <h5>Username</h5>
+                            <input type="text" class="input" name="username" id="username" required>
+                        </div>
+                    </div>
+                    <div class="input-div pass" id="passwordDiv">
+                        <div class="i">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="div">
+                            <h5>Password</h5>
+                            <input type="password" class="input" name="password" id="password" required>
+                        </div>
+                    </div>
+                    <input type="submit" class="btn" value="Login" id="loginBtn">
+                    <div id="message"></div>
+                </form>
             </div>
-
-            <button type="submit" class="btn-login" id="loginBtn">
-                تسجيل الدخول
-            </button>
-        </form>
-
-        <button type="button" class="btn-create-admin" id="createAdminBtn">
-            إنشاء أول أدمن (Create First Admin)
-        </button>
-
-        <div class="loading" id="loading">
-            <div class="loading-spinner"></div>
-            <p style="margin-top: 10px; color: #666;">جاري المعالجة...</p>
-        </div>
-
-        <div class="token-display" id="tokenDisplay">
-            <h3>✅ تم تسجيل الدخول بنجاح!</h3>
-            <p style="margin-bottom: 10px; color: #666;">استخدم هذا الـ Token للوصول إلى API:</p>
-            <code id="tokenValue"></code>
-            <button class="copy-btn" onclick="copyToken()">نسخ Token</button>
         </div>
     </div>
 
     <script>
-        const API_BASE_URL = window.location.origin;
-        const LOGIN_ENDPOINT = API_BASE_URL + '/api/report/Users/login';
-        const CREATE_ADMIN_ENDPOINT = API_BASE_URL + '/api/report/Users/create-first-admin';
-
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const usernameDiv = document.getElementById('usernameDiv');
+        const passwordDiv = document.getElementById('passwordDiv');
         const loginForm = document.getElementById('loginForm');
-        const createAdminBtn = document.getElementById('createAdminBtn');
-        const alertDiv = document.getElementById('alert');
-        const loadingDiv = document.getElementById('loading');
-        const loginBtn = document.getElementById('loginBtn');
-        const tokenDisplay = document.getElementById('tokenDisplay');
+        const messageDiv = document.getElementById('message');
+        const loaderContainer = document.getElementById('loaderContainer');
 
-        function showAlert(message, type = 'error') {
-            alertDiv.textContent = message;
-            alertDiv.className = `alert alert-${type}`;
-            alertDiv.style.display = 'block';
-            tokenDisplay.style.display = 'none';
-            
-            setTimeout(() => {
-                alertDiv.style.display = 'none';
-            }, 5000);
+        function addcl(element) {
+            let parent = element.parentNode.parentNode;
+            parent.classList.add("focus");
         }
+
+        function remcl(element) {
+            let parent = element.parentNode.parentNode;
+            if (element.value == "") {
+                parent.classList.remove("focus");
+            }
+        }
+
+        usernameInput.addEventListener('focus', () => addcl(usernameInput));
+        usernameInput.addEventListener('blur', () => remcl(usernameInput));
+        passwordInput.addEventListener('focus', () => addcl(passwordInput));
+        passwordInput.addEventListener('blur', () => remcl(passwordInput));
 
         function showLoading(show) {
-            loadingDiv.style.display = show ? 'block' : 'none';
-            loginBtn.disabled = show;
-            createAdminBtn.disabled = show;
+            if (show) {
+                loaderContainer.classList.add('show');
+            } else {
+                loaderContainer.classList.remove('show');
+            }
         }
 
-        function displayToken(token) {
-            document.getElementById('tokenValue').textContent = token;
-            tokenDisplay.style.display = 'block';
-            alertDiv.style.display = 'none';
-        }
-
-        function copyToken() {
-            const token = document.getElementById('tokenValue').textContent;
-            navigator.clipboard.writeText(token).then(() => {
-                showAlert('تم نسخ Token بنجاح!', 'success');
-            }).catch(() => {
-                showAlert('فشل نسخ Token', 'error');
-            });
+        function showMessage(message, type) {
+            messageDiv.textContent = message;
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
         }
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
 
             if (!username || !password) {
-                showAlert('الرجاء إدخال اسم المستخدم وكلمة المرور');
+                showMessage('Please enter username and password', 'error');
                 return;
             }
 
             showLoading(true);
-            showAlert('جاري تسجيل الدخول...', 'info');
+            showMessage('', '');
 
             try {
-                const response = await fetch(LOGIN_ENDPOINT, {
+                const response = await fetch('/api/report/Users/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -336,64 +380,18 @@
                 const data = await response.json();
 
                 if (response.ok && data.token) {
-                    showAlert('تم تسجيل الدخول بنجاح!', 'success');
-                    displayToken(data.token);
+                    showMessage('Login successful! Token: ' + data.token, 'success');
+                    localStorage.setItem('token', data.token);
+                    if (data.role) {
+                        localStorage.setItem('role', data.role.toLowerCase());
+                    }
                 } else {
-                    const errorMessage = data.Message || data.message || 'فشل تسجيل الدخول. تحقق من اسم المستخدم وكلمة المرور.';
-                    showAlert(errorMessage);
+                    const errorMessage = data.Message || data.message || 'Login failed. Check username and password.';
+                    showMessage(errorMessage, 'error');
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showAlert('حدث خطأ أثناء الاتصال بالخادم. تأكد من أن الخادم يعمل.');
-            } finally {
-                showLoading(false);
-            }
-        });
-
-        createAdminBtn.addEventListener('click', async () => {
-            const username = prompt('أدخل اسم المستخدم للأدمن:', 'admin');
-            if (!username) return;
-
-            const password = prompt('أدخل كلمة المرور للأدمن:', 'Admin123!');
-            if (!password) return;
-
-            const msisdn = prompt('أدخل رقم الهاتف (اختياري):', '1234567890') || '1234567890';
-            const name = prompt('أدخل الاسم (اختياري):', 'Admin User') || 'Admin User';
-
-            showLoading(true);
-            showAlert('جاري إنشاء حساب الأدمن...', 'info');
-
-            try {
-                const response = await fetch(CREATE_ADMIN_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        Username: username,
-                        Password: password,
-                        Msisdn: msisdn,
-                        Name: name
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.Success) {
-                    showAlert('تم إنشاء حساب الأدمن بنجاح!', 'success');
-                    if (data.Data && data.Data.token) {
-                        displayToken(data.Data.token);
-                    } else {
-                        showAlert('تم إنشاء حساب الأدمن. يمكنك الآن تسجيل الدخول.', 'success');
-                    }
-                } else {
-                    const errorMessage = data.Message || data.message || 'فشل إنشاء حساب الأدمن.';
-                    showAlert(errorMessage);
-                }
-            } catch (error) {
-                console.error('Create admin error:', error);
-                showAlert('حدث خطأ أثناء الاتصال بالخادم. تأكد من أن الخادم يعمل.');
+                showMessage('An error occurred while connecting to the server. Make sure the server is running.', 'error');
             } finally {
                 showLoading(false);
             }
@@ -401,4 +399,3 @@
     </script>
 </body>
 </html>
-
