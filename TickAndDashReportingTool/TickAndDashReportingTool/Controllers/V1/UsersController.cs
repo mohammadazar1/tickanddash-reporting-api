@@ -19,14 +19,19 @@ namespace TickAndDashReportingTool.Controllers.V1
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginUserRequest loginUserRequest)
         {
+            if (loginUserRequest == null || string.IsNullOrWhiteSpace(loginUserRequest.Username) || string.IsNullOrWhiteSpace(loginUserRequest.Password))
+            {
+                return BadRequest(new { StatusCode = 400, Success = false, Message = "Username and Password are required" });
+            }
+
             var result = _userService.Login(loginUserRequest);
 
-            if (result != "")
+            if (result != null && result.ToString() != "")
             {
                 return Ok(result);
             }
 
-            return NotFound();
+            return NotFound(new { StatusCode = 404, Success = false, Message = "Invalid username or password" });
         }
 
 

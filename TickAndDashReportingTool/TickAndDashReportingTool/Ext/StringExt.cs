@@ -10,6 +10,11 @@ namespace TickAndDashReportingTool.Helpers
     {
         public static string Hash(this string text)
         {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                throw new ArgumentNullException(nameof(text), "String cannot be null or empty for hashing");
+            }
+
             return Convert.ToBase64String(KeyDerivation.Pbkdf2(
                 password: text,
                 salt: new byte[128 / 8],

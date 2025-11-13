@@ -36,12 +36,17 @@ namespace TickAndDashReportingTool.Services
 
         public object Login(LoginUserRequest loginUserRequest)
         {
+            if (loginUserRequest == null || string.IsNullOrWhiteSpace(loginUserRequest.Username) || string.IsNullOrWhiteSpace(loginUserRequest.Password))
+            {
+                return "";
+            }
+
             var admin = _adminDAL.GetByUserName(loginUserRequest.Username);
             var pos = _pointOfSalesDAL.GetPOSByUsername(loginUserRequest.Username);
 
             if (admin != null)
             {
-                if (loginUserRequest.Password.Hash() != admin.Password)
+                if (string.IsNullOrWhiteSpace(loginUserRequest.Password) || loginUserRequest.Password.Hash() != admin.Password)
                 {
                     return "";
                 }
@@ -51,18 +56,18 @@ namespace TickAndDashReportingTool.Services
                     {
                         token = CreateToken(new AuthUser
                         {
-                            Username = admin.Username,
+                            Username = admin.Username ?? "",
                             Id = admin.UserId,
-                            Role = admin.Role
+                            Role = admin.Role ?? "Admin"
                         }),
-                        role = admin.Role
+                        role = admin.Role ?? "Admin"
                     };
                 }
             }
 
             if (pos != null)
             {
-                if (loginUserRequest.Password.Hash() != pos.Password)
+                if (string.IsNullOrWhiteSpace(loginUserRequest.Password) || loginUserRequest.Password.Hash() != pos.Password)
                 {
                     return "";
                 }
@@ -72,23 +77,16 @@ namespace TickAndDashReportingTool.Services
                     {
                         token = CreateToken(new AuthUser
                         {
-                            Username = pos.Username,
+                            Username = pos.Username ?? "",
                             Id = pos.UserId,
                             Role = "POS"
                         }),
-                        role = admin?.Role ?? "POS"
+                        role = "POS"
                     };
                 }
             }
 
-            //if (pos == null && admin == null)
-            //{
             return "";
-            //}
-            //if (loginUserRequest.Password.Hash() == admin.Password)
-
-
-            //return "";
         }
         public string Register(RegisterUserRequest registerUserRequest)
         {
