@@ -1,13 +1,18 @@
-﻿using Dapper;
+using Dapper;
 using System;
 using System.Linq;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class CityDAL : BaseDAL, ICityDAL
     {
+        public CityDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         private string _cityTable = "cities";
         private string _defaultschema = "dbo";
         public CityDAL()

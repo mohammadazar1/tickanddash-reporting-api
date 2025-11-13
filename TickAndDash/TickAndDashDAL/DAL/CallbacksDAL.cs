@@ -1,13 +1,18 @@
-﻿using Dapper;
+using Dapper;
 using System;
 using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class CallbacksDAL : BaseDAL, ICallbacksDAL
     {
+        public CallbacksDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         public async Task<bool> InsertCallbackAsync(Callback callback)
         {
             string query = @" insert into Callbacks(BillingStatus, MSISDN, TimeStamp, CreatedAt, NextActionDate)

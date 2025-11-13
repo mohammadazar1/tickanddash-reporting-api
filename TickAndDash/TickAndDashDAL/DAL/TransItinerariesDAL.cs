@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,10 +6,15 @@ using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Enums;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class TransItinerariesDAL : BaseDAL, ITransItinerariesDAL
     {
+        public TransItinerariesDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         private string _itineraryTable = "Transportation_Itineraries";
         private string _defaultschema = "dbo";
         public TransItinerariesDAL() : base()

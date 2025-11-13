@@ -1,13 +1,18 @@
-﻿using Dapper;
+using Dapper;
 using System.Linq;
 using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class RidersTicketsDAL : BaseDAL, IRidersTicketsDAL
     {
+        public RidersTicketsDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
 
         public async Task<int> AddRidersTicketAsync(RidersTickets ridersTickets)
         {

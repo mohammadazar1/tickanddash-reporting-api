@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
@@ -7,6 +8,10 @@ namespace TickAndDashDAL.DAL
 {
     public class AdminDAL : BaseDAL, IAdminDAL
     {
+        public AdminDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         public Admin GetByUserId(int userId)
         {
             using (var connection = GetTickAndDashConnection())

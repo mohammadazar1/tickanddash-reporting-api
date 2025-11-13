@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Dapper.Contrib.Extensions;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +7,15 @@ using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Enums;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class ComplaintsDAL : BaseDAL, IComplaintsDAL
     {
+        public ComplaintsDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         public async Task<Complaint> GetComplaintByIdAsync(int id)
         {
             using (var sqlConnection = GetTickAndDashConnection())

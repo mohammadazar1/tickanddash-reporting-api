@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,10 +7,15 @@ using TickAndDashDAL.Models;
 using Dapper;
 using System.Linq;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class PaymentsToDriversDAL : BaseDAL, IPaymentsToDriversDAL
     {
+        public PaymentsToDriversDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         private const string PaymentsToDriversTable = "PaymentsToDrivers";
 
         public async Task<int> CreateAsync(PaymentToDriver paymentToDriver)

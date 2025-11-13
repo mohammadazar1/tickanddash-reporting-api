@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +7,15 @@ using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Enums;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class CarsQueueDAL : BaseDAL, ICarsQueueDAL
     {
+        public CarsQueueDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         private const string CarsQueueTable = "CarsQueue";
         public CarsQueueDAL() : base()
         {

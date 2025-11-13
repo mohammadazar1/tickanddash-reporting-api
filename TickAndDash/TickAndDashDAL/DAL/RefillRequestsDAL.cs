@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,10 +6,15 @@ using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class RefillRequestsDAL : BaseDAL, IRefillRequestsDAL
     {
+        public RefillRequestsDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         public async Task<List<RefillRequest>> GetAllRefillRequestsAsync(int driverId)
         {
             string query = $@"SELECT refReq.Id, refReq.RiderId, refReq.Amount,  r.UserId, r.MobileNumber FROM RefillRequests refReq, Riders r

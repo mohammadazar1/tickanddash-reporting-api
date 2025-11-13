@@ -2,15 +2,15 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using TickAndDashDAL.DAL.Interfaces;
 
 namespace TickAndDashDAL.DAL
 {
     public class BlacklistedUsersTokensDAL : BaseDAL, IBlacklistedUsersTokensDAL
     {
-        public BlacklistedUsersTokensDAL()
+        public BlacklistedUsersTokensDAL(IConfiguration configuration) : base(configuration)
         {
-
         }
 
         public async Task<bool> AddTokenToBlackListAsync(string token, int userId)

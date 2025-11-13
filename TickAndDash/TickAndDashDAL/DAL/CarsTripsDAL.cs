@@ -1,14 +1,19 @@
-﻿using Dapper;
+using Dapper;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class CarsTripsDAL : BaseDAL, ICarsTripsDAL
     {
+        public CarsTripsDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
 
         public CarsTripsDAL() : base()
         {

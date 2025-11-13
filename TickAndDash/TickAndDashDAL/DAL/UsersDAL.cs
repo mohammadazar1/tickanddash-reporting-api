@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Enums;
 using TickAndDashDAL.Models;
@@ -13,11 +14,8 @@ namespace TickAndDashDAL.DAL
 
         private readonly string _tableName = "Users";
         private readonly string _schema = "dbo";
-        //public UserDAL(IConfiguration configuration) : base(configuration)
-        //{
-
-        //}
-        public UserDAL() : base()
+        
+        public UserDAL(IConfiguration configuration) : base(configuration)
         {
 
         }

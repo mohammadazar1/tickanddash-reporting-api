@@ -1,14 +1,19 @@
-﻿using Dapper;
+using Dapper;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class ComplaintTypesTranslationsDAL : BaseDAL, IComplaintTypesTranslationsDAL
     {
+        public ComplaintTypesTranslationsDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         public async Task<List<ComplaintTypeTranslation>> GetAllComplaintsTypeAsync(string lang)
         {
             string query = @"SELECT * FROM Complaints.ComplaintTypesTranslations

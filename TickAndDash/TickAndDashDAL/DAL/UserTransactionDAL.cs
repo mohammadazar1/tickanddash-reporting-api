@@ -1,14 +1,19 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 using Dapper;
 using System.Linq;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class UserTransactionDAL : BaseDAL, IUserTransactionDAL
     {
+        public UserTransactionDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         public async Task<IList<UserTransaction>> GetAllByFinancialsRequestAsync(UserTransactionFilter financialsRequest)
         {
             using (var connection = GetTickAndDashConnection())

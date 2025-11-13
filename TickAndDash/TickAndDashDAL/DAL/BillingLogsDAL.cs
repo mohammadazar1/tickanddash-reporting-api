@@ -1,12 +1,17 @@
-﻿using Dapper;
+using Dapper;
 using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class BillingLogsDAL : BaseDAL, IBillingLogsDAL
     {
+        public BillingLogsDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         public async Task<bool> InsertBillingLogAsync(BillingLogs billingLogs)
         {
             string query = @"INSERT INTO BillingLogs (UserId,BillingTimeStamp,Status,Price,Response)

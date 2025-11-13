@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,10 +6,15 @@ using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class RidersDAL : BaseDAL, IRidersDAL
     {
+        public RidersDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         private readonly string _RidersTable = "Riders";
         private readonly string _defaultschema = "dbo";
 

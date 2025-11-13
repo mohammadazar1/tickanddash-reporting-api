@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
@@ -12,7 +13,7 @@ namespace TickAndDashDAL.DAL
 
         private const string CarsTable = "Cars";
 
-        public CarsDAL() : base() { }
+        public CarsDAL(IConfiguration configuration) : base(configuration) { }
 
         public bool Create(Car car)
         {

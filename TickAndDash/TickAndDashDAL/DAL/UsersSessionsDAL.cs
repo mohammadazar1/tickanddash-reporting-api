@@ -1,13 +1,18 @@
-﻿using Dapper;
+using Dapper;
 using System;
 using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class UsersSessionsDAL : BaseDAL, IUsersSessionsDAL
     {
+        public UsersSessionsDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
 
         public async Task<bool> AddUserSessionAsync(UsersSessions us)
         {

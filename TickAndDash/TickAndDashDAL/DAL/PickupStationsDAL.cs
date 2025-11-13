@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,10 +6,15 @@ using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Enums;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class PickupStationsDAL : BaseDAL, IPickupStationsDAL
     {
+        public PickupStationsDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         public async Task<List<PickupStations>> GetAllActiveMainPickupStationsAsync()
         {
             string query = $@"select * from PickupStations

@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Dapper.Contrib.Extensions;
 using System;
 using System.Collections.Generic;
@@ -7,10 +7,15 @@ using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class ComplaintsTicketsDAL : BaseDAL, IComplaintsTicketsDAL
     {
+        public ComplaintsTicketsDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         public async Task<List<ComplaintsTickets>> GetComplaintStoriesAsync()
         {
             string query = $@"";

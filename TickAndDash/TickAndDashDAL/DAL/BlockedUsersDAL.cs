@@ -1,12 +1,17 @@
-﻿using Dapper;
+using Dapper;
 using System.Linq;
 using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 
+using Microsoft.Extensions.Configuration;
 namespace TickAndDashDAL.DAL
 {
     public class BlockedUsersDAL : BaseDAL, IBlockedUsersDAL
     {
+        public BlockedUsersDAL(IConfiguration configuration) : base(configuration)
+        {
+        }
+
         public async Task<bool> IsUserBlockedAsync(int userId)
         {
             string query = @"SELECT UserId
