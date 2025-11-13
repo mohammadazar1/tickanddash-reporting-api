@@ -31,10 +31,7 @@ jobs:
         run: dotnet build TickAndDashReportingTool/TickAndDashReportingTool/TickAndDashReportingTool.csproj --configuration Release --no-restore
 
       - name: dotnet publish
-        run: dotnet publish TickAndDashReportingTool/TickAndDashReportingTool/TickAndDashReportingTool.csproj -c Release -o ./publish --no-build
-
-      - name: Publish app
-        run: dotnet publish TickAndDashReportingTool/TickAndDashReportingTool/TickAndDashReportingTool.csproj -c Release -o ./publish --no-build
+        run: dotnet publish TickAndDashReportingTool/TickAndDashReportingTool/TickAndDashReportingTool.csproj -c Release -o ./publish --no-restore
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -67,7 +64,7 @@ jobs:
         with:
           app-name: 'TickAndDash'
           slot-name: 'Production'
-          package: .
+          package: ./publish
 
 
 
