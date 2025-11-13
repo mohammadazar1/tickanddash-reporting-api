@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using TickAndDashReportingTool.Controllers.V1.Requests;
 using TickAndDashReportingTool.Services.Interfaces;
 
@@ -19,19 +20,38 @@ namespace TickAndDashReportingTool.Controllers.V1
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginUserRequest loginUserRequest)
         {
-            if (loginUserRequest == null || string.IsNullOrWhiteSpace(loginUserRequest.Username) || string.IsNullOrWhiteSpace(loginUserRequest.Password))
+            try
             {
-                return BadRequest(new { StatusCode = 400, Success = false, Message = "Username and Password are required" });
+                if (loginUserRequest == null || string.IsNullOrWhiteSpace(loginUserRequest.Username) || string.IsNullOrWhiteSpace(loginUserRequest.Password))
+                {
+                    return BadRequest(new { StatusCode = 400, Success = false, Message = "Username and Password are required" });
+                }
+
+                var result = _userService.Login(loginUserRequest);
+
+                if (result != null)
+                {
+                    return Ok(result);
+                }
+
+                return Unauthorized(new { StatusCode = 401, Success = false, Message = "Invalid username or password" });
             }
-
-            var result = _userService.Login(loginUserRequest);
-
-            if (result != null && result.ToString() != "")
+            catch (ArgumentException argEx)
             {
-                return Ok(result);
+                return BadRequest(new { StatusCode = 400, Success = false, Message = argEx.Message });
             }
-
-            return NotFound(new { StatusCode = 404, Success = false, Message = "Invalid username or password" });
+            catch (UnauthorizedAccessException authEx)
+            {
+                return Unauthorized(new { StatusCode = 401, Success = false, Message = authEx.Message });
+            }
+            catch (InvalidOperationException opEx)
+            {
+                return StatusCode(500, new { StatusCode = 500, Success = false, Message = opEx.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { StatusCode = 500, Success = false, Message = $"An error occurred: {ex.Message}" });
+            }
         }
 
 

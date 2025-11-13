@@ -10,17 +10,37 @@ namespace TickAndDashReportingTool.Helpers
     {
         public static string Hash(this string text)
         {
-            if (string.IsNullOrWhiteSpace(text))
+            if (text == null)
             {
-                throw new ArgumentNullException(nameof(text), "String cannot be null or empty for hashing");
+                throw new ArgumentNullException(nameof(text), "String cannot be null for hashing");
             }
 
-            return Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                password: text,
-                salt: new byte[128 / 8],
-                prf: KeyDerivationPrf.HMACSHA1,
-                iterationCount: 10000,
-                numBytesRequested: 256 / 8));
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                throw new ArgumentException("String cannot be empty or whitespace for hashing", nameof(text));
+            }
+
+            try
+            {
+                var salt = new byte[128 / 8];
+                var hashedBytes = KeyDerivation.Pbkdf2(
+                    password: text,
+                    salt: salt,
+                    prf: KeyDerivationPrf.HMACSHA1,
+                    iterationCount: 10000,
+                    numBytesRequested: 256 / 8);
+
+                if (hashedBytes == null || hashedBytes.Length == 0)
+                {
+                    throw new InvalidOperationException("Hashing produced null or empty result");
+                }
+
+                return Convert.ToBase64String(hashedBytes);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to hash string: {ex.Message}", ex);
+            }
         }
     }
 }

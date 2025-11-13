@@ -38,15 +38,40 @@ namespace TickAndDashReportingTool.Services
         {
             try
             {
-                if (loginUserRequest == null || string.IsNullOrWhiteSpace(loginUserRequest.Username) || string.IsNullOrWhiteSpace(loginUserRequest.Password))
+                // Validate input
+                if (loginUserRequest == null)
                 {
-                    return "";
+                    throw new ArgumentNullException(nameof(loginUserRequest), "Login request cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(loginUserRequest.Username))
+                {
+                    throw new ArgumentException("Username cannot be null or empty", nameof(loginUserRequest.Username));
+                }
+
+                if (string.IsNullOrWhiteSpace(loginUserRequest.Password))
+                {
+                    throw new ArgumentException("Password cannot be null or empty", nameof(loginUserRequest.Password));
+                }
+
+                // Ensure password is not null before hashing
+                var passwordToHash = loginUserRequest.Password?.Trim();
+                if (string.IsNullOrWhiteSpace(passwordToHash))
+                {
+                    throw new ArgumentException("Password cannot be null or empty after trim", nameof(loginUserRequest.Password));
+                }
+
+                // Ensure username is not null before trimming
+                var usernameToSearch = loginUserRequest.Username?.Trim();
+                if (string.IsNullOrWhiteSpace(usernameToSearch))
+                {
+                    throw new ArgumentException("Username cannot be null or empty after trim", nameof(loginUserRequest.Username));
                 }
 
                 Admin admin = null;
                 try
                 {
-                    admin = _adminDAL.GetByUserName(loginUserRequest.Username);
+                    admin = _adminDAL.GetByUserName(usernameToSearch);
                 }
                 catch
                 {
@@ -58,44 +83,47 @@ namespace TickAndDashReportingTool.Services
                     // Check if admin.Password is null or empty
                     if (string.IsNullOrWhiteSpace(admin.Password))
                     {
-                        return "";
+                        throw new InvalidOperationException("Admin password is not set");
                     }
 
                     // Hash the password for comparison
                     string hashedPassword = null;
                     try
                     {
-                        hashedPassword = loginUserRequest.Password.Hash();
+                        hashedPassword = passwordToHash.Hash();
                     }
-                    catch
+                    catch (Exception hashEx)
                     {
-                        return "";
+                        throw new InvalidOperationException($"Failed to hash password: {hashEx.Message}", hashEx);
                     }
 
                     // Compare passwords
                     if (hashedPassword == null || hashedPassword != admin.Password)
                     {
-                        return "";
+                        throw new UnauthorizedAccessException("Invalid username or password");
                     }
 
                     // Create token
                     try
                     {
+                        var authUser = new AuthUser
+                        {
+                            Username = admin.Username ?? "",
+                            Id = admin.UserId,
+                            Role = admin.Role ?? "Admin"
+                        };
+
+                        var token = CreateToken(authUser);
+                        
                         return new
                         {
-                            token = CreateToken(new AuthUser
-                            {
-                                Username = admin.Username ?? "",
-                                Id = admin.UserId,
-                                Role = admin.Role ?? "Admin"
-                            }),
+                            token = token,
                             role = admin.Role ?? "Admin"
                         };
                     }
                     catch (Exception tokenEx)
                     {
-                        // Token creation failed
-                        return "";
+                        throw new InvalidOperationException($"Failed to create token: {tokenEx.Message}", tokenEx);
                     }
                 }
 
@@ -103,7 +131,7 @@ namespace TickAndDashReportingTool.Services
                 var pos = (PointOfSales)null;
                 try
                 {
-                    pos = _pointOfSalesDAL.GetPOSByUsername(loginUserRequest.Username);
+                    pos = _pointOfSalesDAL.GetPOSByUsername(usernameToSearch);
                 }
                 catch
                 {
@@ -115,53 +143,56 @@ namespace TickAndDashReportingTool.Services
                     // Check if pos.Password is null or empty
                     if (string.IsNullOrWhiteSpace(pos.Password))
                     {
-                        return "";
+                        throw new InvalidOperationException("POS password is not set");
                     }
 
                     // Hash the password for comparison
                     string hashedPassword = null;
                     try
                     {
-                        hashedPassword = loginUserRequest.Password.Hash();
+                        hashedPassword = passwordToHash.Hash();
                     }
-                    catch
+                    catch (Exception hashEx)
                     {
-                        return "";
+                        throw new InvalidOperationException($"Failed to hash password: {hashEx.Message}", hashEx);
                     }
 
                     // Compare passwords
                     if (hashedPassword == null || hashedPassword != pos.Password)
                     {
-                        return "";
+                        throw new UnauthorizedAccessException("Invalid username or password");
                     }
 
                     // Create token
                     try
                     {
+                        var authUser = new AuthUser
+                        {
+                            Username = pos.Username ?? "",
+                            Id = pos.UserId,
+                            Role = "POS"
+                        };
+
+                        var token = CreateToken(authUser);
+                        
                         return new
                         {
-                            token = CreateToken(new AuthUser
-                            {
-                                Username = pos.Username ?? "",
-                                Id = pos.UserId,
-                                Role = "POS"
-                            }),
+                            token = token,
                             role = "POS"
                         };
                     }
                     catch (Exception tokenEx)
                     {
-                        // Token creation failed
-                        return "";
+                        throw new InvalidOperationException($"Failed to create token: {tokenEx.Message}", tokenEx);
                     }
                 }
 
-                return "";
+                throw new UnauthorizedAccessException("Invalid username or password");
             }
             catch (Exception ex)
             {
-                // Log error but return empty string (don't expose error details)
-                return "";
+                // Re-throw to be caught by controller/exception handler
+                throw;
             }
         }
 
@@ -293,52 +324,110 @@ namespace TickAndDashReportingTool.Services
 
         private string CreateToken(AuthUser user)
         {
-            if (user == null)
+            try
             {
-                throw new ArgumentNullException(nameof(user), "User cannot be null");
-            }
+                if (user == null)
+                {
+                    throw new ArgumentNullException(nameof(user), "User cannot be null");
+                }
 
-            var claims = new List<Claim>
-            {
-                new Claim (JwtRegisteredClaimNames.UniqueName, user.Username ?? ""),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Name, user.Id.ToString()),
-                new Claim(ClaimTypes.Role, user.Role ?? "User")
-            };
+                // Ensure user properties are not null
+                var username = user.Username ?? "";
+                var role = user.Role ?? "User";
+                var userId = user.Id;
 
-            var keyString = _configuration?["Key"] ?? _configuration?["Jwt:Key"] ?? "DefaultKeyForDevelopmentOnly12345678901234567890";
-            var issuer = _configuration?["Issuer"] ?? _configuration?["Jwt:Issuer"] ?? "TickAndDash";
-            var audience = _configuration?["Audience"] ?? _configuration?["Jwt:Audience"] ?? "TickAndDash";
+                var claims = new List<Claim>
+                {
+                    new Claim(JwtRegisteredClaimNames.UniqueName, username),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(ClaimTypes.Name, userId.ToString()),
+                    new Claim(ClaimTypes.Role, role)
+                };
 
-            // Ensure keyString is not null or empty
-            if (string.IsNullOrWhiteSpace(keyString))
-            {
-                keyString = "DefaultKeyForDevelopmentOnly12345678901234567890";
-            }
+                // Get configuration values with fallbacks
+                var keyString = "DefaultKeyForDevelopmentOnly12345678901234567890";
+                if (_configuration != null)
+                {
+                    keyString = _configuration["Key"] 
+                        ?? _configuration["Jwt:Key"] 
+                        ?? _configuration["JWT:Key"]
+                        ?? keyString;
+                }
 
-            // Ensure issuer is not null or empty
-            if (string.IsNullOrWhiteSpace(issuer))
-            {
-                issuer = "TickAndDash";
-            }
+                var issuer = "TickAndDash";
+                if (_configuration != null)
+                {
+                    issuer = _configuration["Issuer"] 
+                        ?? _configuration["Jwt:Issuer"] 
+                        ?? _configuration["JWT:Issuer"]
+                        ?? issuer;
+                }
 
-            // Ensure audience is not null or empty
-            if (string.IsNullOrWhiteSpace(audience))
-            {
-                audience = "TickAndDash";
-            }
+                var audience = "TickAndDash";
+                if (_configuration != null)
+                {
+                    audience = _configuration["Audience"] 
+                        ?? _configuration["Jwt:Audience"] 
+                        ?? _configuration["JWT:Audience"]
+                        ?? audience;
+                }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(30);
+                // Ensure keyString is not null or empty
+                if (string.IsNullOrWhiteSpace(keyString))
+                {
+                    keyString = "DefaultKeyForDevelopmentOnly12345678901234567890";
+                }
 
-            var t = new JwtSecurityToken(
-                    issuer,
-                    audience,
-                    claims,
+                // Ensure issuer is not null or empty
+                if (string.IsNullOrWhiteSpace(issuer))
+                {
+                    issuer = "TickAndDash";
+                }
+
+                // Ensure audience is not null or empty
+                if (string.IsNullOrWhiteSpace(audience))
+                {
+                    audience = "TickAndDash";
+                }
+
+                // Validate keyString before encoding
+                if (keyString == null)
+                {
+                    throw new InvalidOperationException("JWT Key cannot be null");
+                }
+
+                byte[] keyBytes;
+                try
+                {
+                    keyBytes = Encoding.UTF8.GetBytes(keyString);
+                }
+                catch (Exception encodeEx)
+                {
+                    throw new InvalidOperationException($"Failed to encode JWT key: {encodeEx.Message}", encodeEx);
+                }
+
+                if (keyBytes == null || keyBytes.Length == 0)
+                {
+                    throw new InvalidOperationException("JWT key bytes cannot be null or empty");
+                }
+
+                var key = new SymmetricSecurityKey(keyBytes);
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                var token = new JwtSecurityToken(
+                    issuer: issuer,
+                    audience: audience,
+                    claims: claims,
                     signingCredentials: creds
                 );
-            return new JwtSecurityTokenHandler().WriteToken(t);
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+                return tokenHandler.WriteToken(token);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to create JWT token: {ex.Message}", ex);
+            }
         }
 
         private string GenerateRefrashToken()
