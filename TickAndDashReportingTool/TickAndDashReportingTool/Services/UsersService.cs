@@ -88,6 +88,52 @@ namespace TickAndDashReportingTool.Services
 
             return "";
         }
+
+        public object CreateFirstAdmin(RegisterUserRequest registerUserRequest)
+        {
+            if (registerUserRequest == null || string.IsNullOrWhiteSpace(registerUserRequest.Username) || string.IsNullOrWhiteSpace(registerUserRequest.Password))
+            {
+                return new { Success = false, Message = "Username and Password are required" };
+            }
+
+            // Check if any admin exists
+            var existingAdmin = _adminDAL.GetByUserName(registerUserRequest.Username);
+            if (existingAdmin != null)
+            {
+                return new { Success = false, Message = "Admin with this username already exists" };
+            }
+
+            // Check if there are any admins at all
+            // If no admins exist, allow creating first admin
+            try
+            {
+                var adminDto = new Admin
+                {
+                    MSISDN = registerUserRequest.Msisdn ?? "0000000000",
+                    Password = registerUserRequest.Password.Hash(),
+                    Username = registerUserRequest.Username
+                };
+
+                if (_adminDAL.Insert(adminDto))
+                {
+                    var loginRequest = new LoginUserRequest
+                    {
+                        Username = registerUserRequest.Username,
+                        Password = registerUserRequest.Password
+                    };
+
+                    var loginResult = Login(loginRequest);
+                    return new { Success = true, Message = "First admin created successfully", Data = loginResult };
+                }
+
+                return new { Success = false, Message = "Failed to create admin" };
+            }
+            catch (Exception ex)
+            {
+                return new { Success = false, Message = $"Error creating admin: {ex.Message}" };
+            }
+        }
+
         public string Register(RegisterUserRequest registerUserRequest)
         {
             var adminDto = new Admin

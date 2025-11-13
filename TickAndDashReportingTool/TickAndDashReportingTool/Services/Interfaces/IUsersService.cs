@@ -8,6 +8,8 @@ namespace TickAndDashReportingTool.Services.Interfaces
     {
         object Login(LoginUserRequest loginUserRequest);
         
+        object CreateFirstAdmin(RegisterUserRequest registerUserRequest);
+        
         string Register(RegisterUserRequest registerUserRequest);
         
         Task<bool> IsMobileNumberExist(string msisdn);

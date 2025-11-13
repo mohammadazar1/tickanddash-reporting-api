@@ -35,6 +35,17 @@ namespace TickAndDashReportingTool.Controllers.V1
         }
 
 
+        [HttpPost("create-first-admin")]
+        public IActionResult CreateFirstAdmin([FromBody] RegisterUserRequest registerUserRequest)
+        {
+            var result = _userService.CreateFirstAdmin(registerUserRequest);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
         [Authorize]
         [Authorize(Roles = "Admin, Supervisor")]
         [HttpPost("register")]
