@@ -96,7 +96,7 @@ namespace TickAndDashReportingTool
             // Use default values if SwaggerOptions are not configured
             // Swagger document name is "v1" (from SwaggerInstaller)
             var jsonRoute = swaggerOptions.JsonRoute ?? "swagger/{documentName}/swagger.json";
-            var uiEndpoint = swaggerOptions.UiEndpoint ?? "/swagger/v1/swagger.json";
+            var uiEndpoint = swaggerOptions.UiEndpoint ?? "v1/swagger.json";
             var description = swaggerOptions.Description ?? "Tick&Dash Reporting Tool APIs";
 
             app.UseSwagger(option => { option.RouteTemplate = jsonRoute; });
