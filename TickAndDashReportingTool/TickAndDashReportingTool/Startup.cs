@@ -132,9 +132,6 @@ namespace TickAndDashReportingTool
             {
                 option.SwaggerEndpoint(uiEndpoint, description);
             });
-
-            // Static files should be before routing
-            app.UseStaticFiles();
             
             app.UseRouting();
             app.UseCors("AllowAll");
