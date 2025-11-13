@@ -39,10 +39,20 @@ namespace TickAndDashReportingTool.Controllers.V1
         public IActionResult CreateFirstAdmin([FromBody] RegisterUserRequest registerUserRequest)
         {
             var result = _userService.CreateFirstAdmin(registerUserRequest);
-            if (result.Success)
+            
+            // Check if result is anonymous object with Success property
+            var resultType = result.GetType();
+            var successProperty = resultType.GetProperty("Success");
+            
+            if (successProperty != null)
             {
-                return Ok(result);
+                var successValue = successProperty.GetValue(result);
+                if (successValue != null && (bool)successValue)
+                {
+                    return Ok(result);
+                }
             }
+            
             return BadRequest(result);
         }
 
