@@ -91,46 +91,110 @@ namespace TickAndDashReportingTool.Services
 
         public object CreateFirstAdmin(RegisterUserRequest registerUserRequest)
         {
-            if (registerUserRequest == null || string.IsNullOrWhiteSpace(registerUserRequest.Username) || string.IsNullOrWhiteSpace(registerUserRequest.Password))
-            {
-                return new { Success = false, Message = "Username and Password are required" };
-            }
-
-            // Check if any admin exists
-            var existingAdmin = _adminDAL.GetByUserName(registerUserRequest.Username);
-            if (existingAdmin != null)
-            {
-                return new { Success = false, Message = "Admin with this username already exists" };
-            }
-
-            // Check if there are any admins at all
-            // If no admins exist, allow creating first admin
             try
             {
+                if (registerUserRequest == null || string.IsNullOrWhiteSpace(registerUserRequest.Username) || string.IsNullOrWhiteSpace(registerUserRequest.Password))
+                {
+                    return new { Success = false, Message = "Username and Password are required" };
+                }
+
+                // Check if any admin exists with this username
+                Admin existingAdmin = null;
+                try
+                {
+                    existingAdmin = _adminDAL.GetByUserName(registerUserRequest.Username);
+                }
+                catch
+                {
+                    // If GetByUserName fails, assume no admin exists (first admin)
+                }
+
+                if (existingAdmin != null)
+                {
+                    return new { Success = false, Message = "Admin with this username already exists" };
+                }
+
+                // Create admin
                 var adminDto = new Admin
                 {
                     MSISDN = registerUserRequest.Msisdn ?? "0000000000",
-                    Password = registerUserRequest.Password.Hash(),
-                    Username = registerUserRequest.Username
+                    Password = string.IsNullOrWhiteSpace(registerUserRequest.Password) ? "" : registerUserRequest.Password.Hash(),
+                    Username = registerUserRequest.Username ?? ""
                 };
 
-                if (_adminDAL.Insert(adminDto))
+                if (string.IsNullOrWhiteSpace(adminDto.Username))
                 {
-                    var loginRequest = new LoginUserRequest
-                    {
-                        Username = registerUserRequest.Username,
-                        Password = registerUserRequest.Password
-                    };
-
-                    var loginResult = Login(loginRequest);
-                    return new { Success = true, Message = "First admin created successfully", Data = loginResult };
+                    return new { Success = false, Message = "Username cannot be empty" };
                 }
 
-                return new { Success = false, Message = "Failed to create admin" };
+                if (string.IsNullOrWhiteSpace(adminDto.Password))
+                {
+                    return new { Success = false, Message = "Password cannot be empty" };
+                }
+
+                bool insertResult = false;
+                try
+                {
+                    insertResult = _adminDAL.Insert(adminDto);
+                }
+                catch (Exception insertEx)
+                {
+                    return new { 
+                        Success = false, 
+                        Message = $"Failed to insert admin: {insertEx.Message}",
+                        InnerException = insertEx.InnerException?.Message
+                    };
+                }
+
+                if (insertResult)
+                {
+                    // Wait a bit for the insert to complete and be queryable
+                    System.Threading.Thread.Sleep(500);
+
+                    // Try to login to get token
+                    try
+                    {
+                        var loginRequest = new LoginUserRequest
+                        {
+                            Username = registerUserRequest.Username,
+                            Password = registerUserRequest.Password
+                        };
+
+                        var loginResult = Login(loginRequest);
+                        
+                        if (loginResult != null)
+                        {
+                            var loginResultString = loginResult.ToString();
+                            if (!string.IsNullOrWhiteSpace(loginResultString) && loginResultString != "")
+                            {
+                                return new { Success = true, Message = "First admin created successfully", Data = loginResult };
+                            }
+                        }
+                    }
+                    catch (Exception loginEx)
+                    {
+                        // Login failed but admin was created - return success with message
+                        return new { 
+                            Success = true, 
+                            Message = "First admin created successfully. Please login using /api/report/Users/login",
+                            LoginError = loginEx.Message
+                        };
+                    }
+
+                    // Admin created but login returned empty - return success anyway
+                    return new { Success = true, Message = "First admin created successfully. Please login using /api/report/Users/login" };
+                }
+
+                return new { Success = false, Message = "Failed to create admin - Insert returned false" };
             }
             catch (Exception ex)
             {
-                return new { Success = false, Message = $"Error creating admin: {ex.Message}" };
+                return new { 
+                    Success = false, 
+                    Message = $"Error creating admin: {ex.Message}",
+                    StackTrace = ex.StackTrace,
+                    InnerException = ex.InnerException?.Message
+                };
             }
         }
 
@@ -200,12 +264,19 @@ namespace TickAndDashReportingTool.Services
 
         private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
         {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                throw new ArgumentNullException(nameof(token), "Token cannot be null or empty");
+            }
+
+            var keyString = _configuration["Key"] ?? _configuration["Jwt:Key"] ?? "DefaultKeyForDevelopmentOnly12345678901234567890";
+            
             var tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateAudience = false, //you might want to validate the audience and issuer depending on your use case
                 ValidateIssuer = false,
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Key"])),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString)),
                 ValidateLifetime = false //here we are saying that we don't care about the token's expiration date
             };
 
