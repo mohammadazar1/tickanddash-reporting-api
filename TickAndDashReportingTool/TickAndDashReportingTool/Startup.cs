@@ -26,24 +26,21 @@ namespace TickAndDashReportingTool
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(options =>
+            try
             {
-                options.AddPolicy("AllowAll",
-                    builder =>
-                    {
-                        builder
-                        .AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader();
-                    });
-            });
-            services.InstallServicesInAssembly(Configuration);
-            services.AddControllers().AddNewtonsoftJson(options =>
+                services.InstallServicesInAssembly(Configuration);
+            }
+            catch (Exception ex)
             {
-                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            });
-            services.AddEndpointsApiExplorer();
-            // Swagger is configured in SwaggerInstaller, don't add it here
+                // Log the error - this will be visible in Azure logs
+                System.Diagnostics.Debug.WriteLine($"Error in ConfigureServices: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"InnerException: {ex.InnerException.Message}");
+                }
+                throw; // Re-throw to prevent silent failures
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -107,15 +104,12 @@ namespace TickAndDashReportingTool
             });
 
             app.UseStaticFiles();
-
+            
             app.UseRouting();
-
             app.UseCors("AllowAll");
-
             app.UseAuthentication();
-
             app.UseAuthorization();
-
+            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

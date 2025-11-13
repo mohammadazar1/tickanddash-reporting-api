@@ -1,10 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace TickAndDashReportingTool.Controllers
 {
     [ApiController]
-    [AllowAnonymous]
     public class HomeController : ControllerBase
     {
         [HttpGet("/")]

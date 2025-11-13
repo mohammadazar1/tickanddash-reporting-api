@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TickAndDashReportingTool.Installers.Interfaces;
+using Newtonsoft.Json;
 
 namespace TickAndDashReportingTool.Installers
 {
@@ -8,11 +9,24 @@ namespace TickAndDashReportingTool.Installers
     {
         public void InstallServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddControllers().AddJsonOptions(opt =>
+            services.AddCors(options =>
             {
-                opt.JsonSerializerOptions.IgnoreNullValues = true;
-                
+                options.AddPolicy("AllowAll",
+                    builder =>
+                    {
+                        builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                    });
             });
+            
+            services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            });
+            
+            services.AddEndpointsApiExplorer();
         }
     }
 }
