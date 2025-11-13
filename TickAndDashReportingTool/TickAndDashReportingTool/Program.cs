@@ -31,7 +31,9 @@ namespace TickAndDashReportingTool
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder
+                        .UseStartup<Startup>()
+                        .UseWebRoot("wwwroot"); // Explicitly set wwwroot folder
                     // Azure App Service automatically sets the PORT environment variable
                     // Don't override it, let Azure handle it
                     // webBuilder.UseUrls() is not needed for Azure App Service
