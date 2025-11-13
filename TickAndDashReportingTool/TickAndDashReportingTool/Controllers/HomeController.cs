@@ -4,10 +4,12 @@ using System;
 
 namespace TickAndDashReportingTool.Controllers
 {
+    [ApiController]
     [AllowAnonymous]
     public class HomeController : ControllerBase
     {
         [HttpGet("/")]
+        [Produces("text/html")]
         public IActionResult Get()
         {
             try
@@ -34,7 +36,7 @@ namespace TickAndDashReportingTool.Controllers
 
         [HttpGet("/login")]
         [HttpGet("/login.html")]
-        [AllowAnonymous]
+        [Produces("text/html")]
         public IActionResult LoginPage()
         {
             try
