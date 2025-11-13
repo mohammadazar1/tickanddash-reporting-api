@@ -43,7 +43,7 @@ namespace TickAndDashReportingTool
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
+            // Swagger is configured in SwaggerInstaller, don't add it here
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -94,8 +94,9 @@ namespace TickAndDashReportingTool
             Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
 
             // Use default values if SwaggerOptions are not configured
+            // Swagger document name is "v1" (from SwaggerInstaller)
             var jsonRoute = swaggerOptions.JsonRoute ?? "swagger/{documentName}/swagger.json";
-            var uiEndpoint = swaggerOptions.UiEndpoint ?? "v1/swagger.json";
+            var uiEndpoint = swaggerOptions.UiEndpoint ?? "/swagger/v1/swagger.json";
             var description = swaggerOptions.Description ?? "Tick&Dash Reporting Tool APIs";
 
             app.UseSwagger(option => { option.RouteTemplate = jsonRoute; });
