@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - tickanddash-reporting-api
+name: Build and deploy ASP.Net Core app to Azure Web App - TickAndDash
 
 on:
   push:
@@ -57,15 +57,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_1DDEE43AA6E043ACA7741012369AA134 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_92D296483543486595351017509C6CD4 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_95B5859719BD418090BC1B86DF943B47 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_2617561708F143918BE3329E135968FA }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_2B98AE039C1644F4BF6AAD90576F9446 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E040E24C4A7B4137A8FBDBA2FBF7261C }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'tickanddash-reporting-api'
+          app-name: 'TickAndDash'
           slot-name: 'Production'
           package: ./publish
 
