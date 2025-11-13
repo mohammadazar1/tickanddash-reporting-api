@@ -36,57 +36,125 @@ namespace TickAndDashReportingTool.Services
 
         public object Login(LoginUserRequest loginUserRequest)
         {
-            if (loginUserRequest == null || string.IsNullOrWhiteSpace(loginUserRequest.Username) || string.IsNullOrWhiteSpace(loginUserRequest.Password))
+            try
             {
+                if (loginUserRequest == null || string.IsNullOrWhiteSpace(loginUserRequest.Username) || string.IsNullOrWhiteSpace(loginUserRequest.Password))
+                {
+                    return "";
+                }
+
+                Admin admin = null;
+                try
+                {
+                    admin = _adminDAL.GetByUserName(loginUserRequest.Username);
+                }
+                catch
+                {
+                    // If GetByUserName fails, continue to check POS
+                }
+
+                if (admin != null)
+                {
+                    // Check if admin.Password is null or empty
+                    if (string.IsNullOrWhiteSpace(admin.Password))
+                    {
+                        return "";
+                    }
+
+                    // Hash the password for comparison
+                    string hashedPassword = null;
+                    try
+                    {
+                        hashedPassword = loginUserRequest.Password.Hash();
+                    }
+                    catch
+                    {
+                        return "";
+                    }
+
+                    // Compare passwords
+                    if (hashedPassword == null || hashedPassword != admin.Password)
+                    {
+                        return "";
+                    }
+
+                    // Create token
+                    try
+                    {
+                        return new
+                        {
+                            token = CreateToken(new AuthUser
+                            {
+                                Username = admin.Username ?? "",
+                                Id = admin.UserId,
+                                Role = admin.Role ?? "Admin"
+                            }),
+                            role = admin.Role ?? "Admin"
+                        };
+                    }
+                    catch (Exception tokenEx)
+                    {
+                        // Token creation failed
+                        return "";
+                    }
+                }
+
+                // Check POS
+                var pos = _pointOfSalesDAL.GetPOSByUsername(loginUserRequest.Username);
+
+                if (pos != null)
+                {
+                    // Check if pos.Password is null or empty
+                    if (string.IsNullOrWhiteSpace(pos.Password))
+                    {
+                        return "";
+                    }
+
+                    // Hash the password for comparison
+                    string hashedPassword = null;
+                    try
+                    {
+                        hashedPassword = loginUserRequest.Password.Hash();
+                    }
+                    catch
+                    {
+                        return "";
+                    }
+
+                    // Compare passwords
+                    if (hashedPassword == null || hashedPassword != pos.Password)
+                    {
+                        return "";
+                    }
+
+                    // Create token
+                    try
+                    {
+                        return new
+                        {
+                            token = CreateToken(new AuthUser
+                            {
+                                Username = pos.Username ?? "",
+                                Id = pos.UserId,
+                                Role = "POS"
+                            }),
+                            role = "POS"
+                        };
+                    }
+                    catch (Exception tokenEx)
+                    {
+                        // Token creation failed
+                        return "";
+                    }
+                }
+
                 return "";
             }
-
-            var admin = _adminDAL.GetByUserName(loginUserRequest.Username);
-            var pos = _pointOfSalesDAL.GetPOSByUsername(loginUserRequest.Username);
-
-            if (admin != null)
+            catch (Exception ex)
             {
-                if (string.IsNullOrWhiteSpace(loginUserRequest.Password) || loginUserRequest.Password.Hash() != admin.Password)
-                {
-                    return "";
-                }
-                else
-                {
-                    return new
-                    {
-                        token = CreateToken(new AuthUser
-                        {
-                            Username = admin.Username ?? "",
-                            Id = admin.UserId,
-                            Role = admin.Role ?? "Admin"
-                        }),
-                        role = admin.Role ?? "Admin"
-                    };
-                }
+                // Log error but return empty string (don't expose error details)
+                return "";
             }
-
-            if (pos != null)
-            {
-                if (string.IsNullOrWhiteSpace(loginUserRequest.Password) || loginUserRequest.Password.Hash() != pos.Password)
-                {
-                    return "";
-                }
-                else
-                {
-                    return new
-                    {
-                        token = CreateToken(new AuthUser
-                        {
-                            Username = pos.Username ?? "",
-                            Id = pos.UserId,
-                            Role = "POS"
-                        }),
-                        role = "POS"
-                    };
-                }
-            }
-
-            return "";
         }
 
         public object CreateFirstAdmin(RegisterUserRequest registerUserRequest)
@@ -230,9 +298,27 @@ namespace TickAndDashReportingTool.Services
                 new Claim(ClaimTypes.Role, user.Role ?? "User")
             };
 
-            var keyString = _configuration["Key"] ?? _configuration["Jwt:Key"] ?? "DefaultKeyForDevelopmentOnly12345678901234567890";
-            var issuer = _configuration["Issuer"] ?? _configuration["Jwt:Issuer"] ?? "TickAndDash";
-            var audience = _configuration["Audience"] ?? _configuration["Jwt:Audience"] ?? "TickAndDash";
+            var keyString = _configuration?["Key"] ?? _configuration?["Jwt:Key"] ?? "DefaultKeyForDevelopmentOnly12345678901234567890";
+            var issuer = _configuration?["Issuer"] ?? _configuration?["Jwt:Issuer"] ?? "TickAndDash";
+            var audience = _configuration?["Audience"] ?? _configuration?["Jwt:Audience"] ?? "TickAndDash";
+
+            // Ensure keyString is not null or empty
+            if (string.IsNullOrWhiteSpace(keyString))
+            {
+                keyString = "DefaultKeyForDevelopmentOnly12345678901234567890";
+            }
+
+            // Ensure issuer is not null or empty
+            if (string.IsNullOrWhiteSpace(issuer))
+            {
+                issuer = "TickAndDash";
+            }
+
+            // Ensure audience is not null or empty
+            if (string.IsNullOrWhiteSpace(audience))
+            {
+                audience = "TickAndDash";
+            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
