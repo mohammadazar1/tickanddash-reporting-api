@@ -1,25 +1,47 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
 namespace TickAndDashReportingTool.Controllers
 {
-    [ApiController]
+    [AllowAnonymous]
     public class HomeController : ControllerBase
     {
         [HttpGet("/")]
         public IActionResult Get()
         {
-            // Simple redirect - let static file middleware handle /login.html
-            return Redirect("/login.html");
+            try
+            {
+                // Simple redirect - let static file middleware handle /login.html
+                return Redirect("/login.html");
+            }
+            catch (Exception ex)
+            {
+                // Return error page if redirect fails
+                return Content($@"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error</title>
+</head>
+<body>
+    <h1>Error</h1>
+    <p>Error redirecting to login page: {System.Net.WebUtility.HtmlEncode(ex.Message)}</p>
+</body>
+</html>", "text/html");
+            }
         }
 
         [HttpGet("/login")]
         [HttpGet("/login.html")]
+        [AllowAnonymous]
         public IActionResult LoginPage()
         {
-            // This should be handled by static file middleware
-            // If we reach here, return a simple message
-            return Content(@"
+            try
+            {
+                // This should be handled by static file middleware
+                // If we reach here, return a simple message
+                return Content(@"
 <!DOCTYPE html>
 <html>
 <head>
@@ -31,6 +53,21 @@ namespace TickAndDashReportingTool.Controllers
     <p>Please ensure login.html exists in the wwwroot folder.</p>
 </body>
 </html>", "text/html");
+            }
+            catch (Exception ex)
+            {
+                return Content($@"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error</title>
+</head>
+<body>
+    <h1>Error</h1>
+    <p>Error loading login page: {System.Net.WebUtility.HtmlEncode(ex.Message)}</p>
+</body>
+</html>", "text/html");
+            }
         }
     }
 }

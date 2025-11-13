@@ -46,6 +46,19 @@ namespace TickAndDashReportingTool
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            try
+            {
+                // Add logging for startup
+                System.Diagnostics.Debug.WriteLine("Starting Configure method...");
+                System.Diagnostics.Debug.WriteLine($"Environment: {env.EnvironmentName}");
+                System.Diagnostics.Debug.WriteLine($"ContentRoot: {env.ContentRootPath}");
+                System.Diagnostics.Debug.WriteLine($"WebRoot: {env.WebRootPath}");
+            }
+            catch (Exception startupEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in Configure startup: {startupEx.Message}");
+            }
+
             app.UseExceptionHandler(appBuilder =>
             {
                 appBuilder.Run(async context =>
