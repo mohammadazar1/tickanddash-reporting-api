@@ -27,11 +27,38 @@ namespace TickAndDashDAL.DAL
         {
             using (var connection = GetTickAndDashConnection())
             {
-                var sql = $@"SELECT a.*, r.Id RoleId, r.Role Role  FROM Admins a, Users u, Roles r 
-                                WHERE a.Username = @Username AND u.RoleId = r.Id AND a.UserId = u.Id";
-                return connection
-                    .Query<Admin>(sql, new { Username = username })
+                // Try with JOIN first (if Users and Roles exist)
+                try
+                {
+                    var sql = $@"SELECT a.*, r.Id RoleId, r.Role Role  FROM Admins a, Users u, Roles r 
+                                    WHERE a.Username = @Username AND u.RoleId = r.Id AND a.UserId = u.Id";
+                    var admin = connection
+                        .Query<Admin>(sql, new { Username = username })
+                        .FirstOrDefault();
+                    
+                    if (admin != null)
+                    {
+                        return admin;
+                    }
+                }
+                catch
+                {
+                    // If JOIN fails (e.g., Users or Roles table is empty), try without JOIN
+                }
+                
+                // Fallback: Get admin without JOIN (if Users/Roles are empty)
+                var fallbackSql = @"SELECT * FROM Admins WHERE Username = @Username";
+                var adminFallback = connection
+                    .Query<Admin>(fallbackSql, new { Username = username })
                     .FirstOrDefault();
+                
+                // Set default role if not set
+                if (adminFallback != null && string.IsNullOrWhiteSpace(adminFallback.Role))
+                {
+                    adminFallback.Role = "Admin";
+                }
+                
+                return adminFallback;
             }
         }
 
