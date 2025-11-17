@@ -351,51 +351,69 @@
         }
 
         loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    e.preventDefault();
 
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value;
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
 
-            if (!username || !password) {
-                showMessage('Please enter username and password', 'error');
-                return;
-            }
+    if (!username || !password) {
+        showMessage('Please enter username and password', 'error');
+        return;
+    }
 
-            showLoading(true);
-            showMessage('', '');
+    showLoading(true);
+    showMessage('', '');
 
-            try {
-                const response = await fetch('/api/report/Users/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        Username: username,
-                        Password: password
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.token) {
-                    showMessage('Login successful! Token: ' + data.token, 'success');
-                    localStorage.setItem('token', data.token);
-                    if (data.role) {
-                        localStorage.setItem('role', data.role.toLowerCase());
-                    }
-                } else {
-                    const errorMessage = data.Message || data.message || 'Login failed. Check username and password.';
-                    showMessage(errorMessage, 'error');
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                showMessage('An error occurred while connecting to the server. Make sure the server is running.', 'error');
-            } finally {
-                showLoading(false);
-            }
+    try {
+        const response = await fetch('/api/report/Users/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                Username: username,
+                Password: password
+            })
         });
+
+        const data = await response.json();
+        console.log('Login response:', data);
+
+        if (response.ok && data.token) {
+            // خزّن التوكن والـ role
+            localStorage.setItem('token', data.token);
+
+            // في السيرفر القديم كان يرجع role مثل: "Admin", "Controller", "POS"
+            const role = (data.role || data.Role || '').toString().toLowerCase();
+            localStorage.setItem('role', role);
+
+            // بدال ما نعرض التوكن، نعمل redirect حسب الدور
+            if (role === 'admin') {
+                // عدّل المسار حسب اسم صفحة الأدمن عندك
+                window.location.href = '/admin/index.html';
+            } else if (role === 'controller') {
+                // عدّل المسار حسب صفحة الكنترولر
+                window.location.href = '/controller/index.html';
+            } else if (role === 'pos') {
+                // عدّل المسار حسب صفحة الـ POS
+                window.location.href = '/pos/index.html';
+            } else {
+                // لو رجع role غريب أو فاضي، نعرض رسالة بسيطة
+                showMessage('Login successful, but unknown role: ' + (data.role || data.Role), 'success');
+            }
+        } else {
+            const errorMessage = data.Message || data.message || 'Login failed. Check username and password.';
+            showMessage(errorMessage, 'error');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        showMessage('An error occurred while connecting to the server. Make sure the server is running.', 'error');
+    } finally {
+        showLoading(false);
+    }
+});
+
     </script>
 </body>
 </html>
