@@ -216,10 +216,20 @@ namespace TickAndDashReportingTool.Services
                     }
                 }
 
+                System.Diagnostics.Debug.WriteLine("No admin or POS found with the provided username");
                 throw new UnauthorizedAccessException("Invalid username or password");
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"=== EXCEPTION in UsersService.Login() ===");
+                System.Diagnostics.Debug.WriteLine($"Exception Type: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"Message: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"InnerException: {ex.InnerException.Message}");
+                    System.Diagnostics.Debug.WriteLine($"InnerException StackTrace: {ex.InnerException.StackTrace}");
+                }
                 // Re-throw to be caught by controller/exception handler
                 throw;
             }
