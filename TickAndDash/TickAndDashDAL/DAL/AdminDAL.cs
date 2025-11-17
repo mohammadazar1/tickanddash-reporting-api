@@ -27,38 +27,45 @@ namespace TickAndDashDAL.DAL
         {
             using (var connection = GetTickAndDashConnection())
             {
-                // Try with JOIN first (if Users and Roles exist)
+                // First, try to get admin directly (simplest query)
+                var directSql = @"SELECT * FROM Admins WHERE Username = @Username";
+                var admin = connection
+                    .Query<Admin>(directSql, new { Username = username })
+                    .FirstOrDefault();
+                
+                if (admin == null)
+                {
+                    return null; // Admin not found
+                }
+                
+                // Try to get role from Users and Roles tables if they exist
                 try
                 {
-                    var sql = $@"SELECT a.*, r.Id RoleId, r.Role Role  FROM Admins a, Users u, Roles r 
-                                    WHERE a.Username = @Username AND u.RoleId = r.Id AND a.UserId = u.Id";
-                    var admin = connection
-                        .Query<Admin>(sql, new { Username = username })
+                    var roleSql = @"SELECT r.Role FROM Admins a
+                                   LEFT JOIN Users u ON a.UserId = u.Id
+                                   LEFT JOIN Roles r ON u.RoleId = r.Id
+                                   WHERE a.Username = @Username";
+                    var role = connection
+                        .Query<string>(roleSql, new { Username = username })
                         .FirstOrDefault();
                     
-                    if (admin != null)
+                    if (!string.IsNullOrWhiteSpace(role))
                     {
-                        return admin;
+                        admin.Role = role;
                     }
                 }
                 catch
                 {
-                    // If JOIN fails (e.g., Users or Roles table is empty), try without JOIN
+                    // If JOIN fails, continue with default role
                 }
-                
-                // Fallback: Get admin without JOIN (if Users/Roles are empty)
-                var fallbackSql = @"SELECT * FROM Admins WHERE Username = @Username";
-                var adminFallback = connection
-                    .Query<Admin>(fallbackSql, new { Username = username })
-                    .FirstOrDefault();
                 
                 // Set default role if not set
-                if (adminFallback != null && string.IsNullOrWhiteSpace(adminFallback.Role))
+                if (string.IsNullOrWhiteSpace(admin.Role))
                 {
-                    adminFallback.Role = "Admin";
+                    admin.Role = "Admin";
                 }
                 
-                return adminFallback;
+                return admin;
             }
         }
 
