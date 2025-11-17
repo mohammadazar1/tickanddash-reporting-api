@@ -38,11 +38,17 @@ namespace TickAndDashReportingTool.Services
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine("=== UsersService.Login() started ===");
+                
                 // Validate input
                 if (loginUserRequest == null)
                 {
+                    System.Diagnostics.Debug.WriteLine("ERROR: loginUserRequest is null");
                     throw new ArgumentNullException(nameof(loginUserRequest), "Login request cannot be null");
                 }
+
+                System.Diagnostics.Debug.WriteLine($"Username: {loginUserRequest.Username ?? "null"}");
+                System.Diagnostics.Debug.WriteLine($"Password: {(string.IsNullOrWhiteSpace(loginUserRequest.Password) ? "null or empty" : "provided")}");
 
                 if (string.IsNullOrWhiteSpace(loginUserRequest.Username))
                 {
@@ -68,13 +74,19 @@ namespace TickAndDashReportingTool.Services
                     throw new ArgumentException("Username cannot be null or empty after trim", nameof(loginUserRequest.Username));
                 }
 
+                System.Diagnostics.Debug.WriteLine($"Searching for admin with username: {usernameToSearch}");
+
                 Admin admin = null;
                 try
                 {
+                    System.Diagnostics.Debug.WriteLine("Calling _adminDAL.GetByUserName...");
                     admin = _adminDAL.GetByUserName(usernameToSearch);
+                    System.Diagnostics.Debug.WriteLine($"Admin result: {(admin != null ? $"Found - UserId: {admin.UserId}, Username: {admin.Username}, Password: {(string.IsNullOrWhiteSpace(admin.Password) ? "null or empty" : "exists")}" : "null")}");
                 }
-                catch
+                catch (Exception dalEx)
                 {
+                    System.Diagnostics.Debug.WriteLine($"ERROR in _adminDAL.GetByUserName: {dalEx.Message}");
+                    System.Diagnostics.Debug.WriteLine($"StackTrace: {dalEx.StackTrace}");
                     // If GetByUserName fails, continue to check POS
                 }
 
@@ -90,22 +102,31 @@ namespace TickAndDashReportingTool.Services
                     string hashedPassword = null;
                     try
                     {
+                        System.Diagnostics.Debug.WriteLine("Hashing password...");
                         hashedPassword = passwordToHash.Hash();
+                        System.Diagnostics.Debug.WriteLine($"Password hashed successfully. Length: {hashedPassword?.Length ?? 0}");
                     }
                     catch (Exception hashEx)
                     {
+                        System.Diagnostics.Debug.WriteLine($"ERROR hashing password: {hashEx.Message}");
+                        System.Diagnostics.Debug.WriteLine($"StackTrace: {hashEx.StackTrace}");
                         throw new InvalidOperationException($"Failed to hash password: {hashEx.Message}", hashEx);
                     }
 
                     // Compare passwords
+                    System.Diagnostics.Debug.WriteLine($"Comparing passwords. Stored password length: {admin.Password?.Length ?? 0}");
                     if (hashedPassword == null || hashedPassword != admin.Password)
                     {
+                        System.Diagnostics.Debug.WriteLine("Password comparison failed - passwords do not match");
                         throw new UnauthorizedAccessException("Invalid username or password");
                     }
+
+                    System.Diagnostics.Debug.WriteLine("Password comparison successful!");
 
                     // Create token
                     try
                     {
+                        System.Diagnostics.Debug.WriteLine("Creating token...");
                         var authUser = new AuthUser
                         {
                             Username = admin.Username ?? "",
@@ -113,7 +134,9 @@ namespace TickAndDashReportingTool.Services
                             Role = admin.Role ?? "Admin"
                         };
 
+                        System.Diagnostics.Debug.WriteLine($"AuthUser created - Username: {authUser.Username}, Id: {authUser.Id}, Role: {authUser.Role}");
                         var token = CreateToken(authUser);
+                        System.Diagnostics.Debug.WriteLine($"Token created successfully. Length: {token?.Length ?? 0}");
                         
                         return new
                         {
@@ -123,6 +146,12 @@ namespace TickAndDashReportingTool.Services
                     }
                     catch (Exception tokenEx)
                     {
+                        System.Diagnostics.Debug.WriteLine($"ERROR creating token: {tokenEx.Message}");
+                        System.Diagnostics.Debug.WriteLine($"StackTrace: {tokenEx.StackTrace}");
+                        if (tokenEx.InnerException != null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"InnerException: {tokenEx.InnerException.Message}");
+                        }
                         throw new InvalidOperationException($"Failed to create token: {tokenEx.Message}", tokenEx);
                     }
                 }
