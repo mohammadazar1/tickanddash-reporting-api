@@ -1,4 +1,5 @@
-﻿using System.Data.SqlClient;
+﻿using System;
+using System.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 
 namespace TickAndDashDAL.DAL
