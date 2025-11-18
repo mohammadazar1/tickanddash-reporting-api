@@ -141,6 +141,7 @@ namespace TickAndDashReportingTool
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapFallbackToFile("index.html");
             });
         }
     }

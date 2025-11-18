@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.IO;
 
 namespace TickAndDashReportingTool.Controllers
 {
@@ -10,49 +11,32 @@ namespace TickAndDashReportingTool.Controllers
     {
         [HttpGet("/")]
         [Produces("text/html")]
-        public IActionResult Get()
-        {
-            try
-            {
-                // Simple redirect - let static file middleware handle /login.html
-                return Redirect("/login.html");
-            }
-            catch (Exception ex)
-            {
-                // Return error page if redirect fails
-                return Content($@"
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Error</title>
-</head>
-<body>
-    <h1>Error</h1>
-    <p>Error redirecting to login page: {System.Net.WebUtility.HtmlEncode(ex.Message)}</p>
-</body>
-</html>", "text/html");
-            }
-        }
+        public IActionResult Get() => ServeSpa();
 
         [HttpGet("/login")]
         [HttpGet("/login.html")]
         [Produces("text/html")]
-        public IActionResult LoginPage()
+        public IActionResult LoginPage() => ServeSpa();
+
+        private IActionResult ServeSpa()
         {
             try
             {
-                // This should be handled by static file middleware
-                // If we reach here, return a simple message
+                var indexPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "index.html");
+                if (System.IO.File.Exists(indexPath))
+                {
+                    return PhysicalFile(indexPath, "text/html");
+                }
+
                 return Content(@"
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>Tick & Dash</title>
 </head>
 <body>
-    <h1>Login Page</h1>
-    <p>If you see this message, the login.html file is not being served by static file middleware.</p>
-    <p>Please ensure login.html exists in the wwwroot folder.</p>
+    <h1>Application not yet built</h1>
+    <p>The Angular admin dashboard has not been published to wwwroot.</p>
 </body>
 </html>", "text/html");
             }
@@ -66,7 +50,7 @@ namespace TickAndDashReportingTool.Controllers
 </head>
 <body>
     <h1>Error</h1>
-    <p>Error loading login page: {System.Net.WebUtility.HtmlEncode(ex.Message)}</p>
+    <p>Error loading application shell: {System.Net.WebUtility.HtmlEncode(ex.Message)}</p>
 </body>
 </html>", "text/html");
             }
