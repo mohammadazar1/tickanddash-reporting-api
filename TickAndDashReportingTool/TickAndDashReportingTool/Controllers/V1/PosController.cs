@@ -199,8 +199,7 @@ namespace TickAndDashReportingTool.Controllers.V1
                 Data = new List<POSTransactions>()
             };
 
-            string role = User.FindFirstValue(ClaimTypes.Role);
-            int userId = int.Parse(User.FindFirstValue(ClaimTypes.Name));
+            string role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
 
 
             if (request.MobileNumber?.Length < 9)
@@ -210,8 +209,16 @@ namespace TickAndDashReportingTool.Controllers.V1
                 return UnprocessableEntity(response);
             }
 
-            if (role == "POS")
+            if (string.Equals(role, "POS", StringComparison.OrdinalIgnoreCase))
             {
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    response.MessageAr = "عذرًا، حساب الكاشير غير صالح. يرجى تسجيل الدخول من جديد.";
+                    response.MessageEn = "Invalid POS account. Please log in again.";
+                    return Unauthorized(response);
+                }
+
                 response.Success = true;
 
                 var pOSTransactions = await _userTransactionsService.GetPOSTransactions(userId, request.MobileNumber, request.From, request.To, isPos: true);
