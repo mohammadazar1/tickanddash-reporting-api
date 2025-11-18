@@ -1,5 +1,8 @@
 {
     "login": "Login",
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "general": "General",
     "ticket": "Ticket",
     "driversAndCars": "Drivers and Cars",
     "carsqueue": "Cars Queue",
