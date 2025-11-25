@@ -49,6 +49,26 @@ namespace TickAndDashReportingTool
             // Static files should be FIRST, before exception handler
             app.UseStaticFiles();
 
+            // Add Content Security Policy to prevent malicious script injection
+            app.Use(async (context, next) =>
+            {
+                // Only apply CSP to HTML pages, not API endpoints
+                if (context.Request.Path.StartsWithSegments("/api") == false)
+                {
+                    context.Response.Headers.Add("Content-Security-Policy", 
+                        "default-src 'self'; " +
+                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com; " +
+                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; " +
+                        "font-src 'self' https://fonts.gstatic.com data:; " +
+                        "img-src 'self' data: https:; " +
+                        "connect-src 'self' https://tickanddash-hmexcjh6ewescwa2.canadacentral-01.azurewebsites.net https://tickanddash-backend-api-cmghdnbbedfzapfd.canadacentral-01.azurewebsites.net; " +
+                        "frame-ancestors 'none'; " +
+                        "base-uri 'self'; " +
+                        "form-action 'self'");
+                }
+                await next();
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
