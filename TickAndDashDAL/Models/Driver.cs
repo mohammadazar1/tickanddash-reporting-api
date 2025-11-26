@@ -1,6 +1,6 @@
 ﻿using TickAndDashDAL.Models;
 
-namespace TickAndDashDAL.DAL
+namespace TickAndDashDAL.Models
 {
     public class Driver
     {
