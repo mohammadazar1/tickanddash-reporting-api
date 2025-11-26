@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
-using TickAndDashDAL.Enums;
 using TickAndDashDAL.Models;
 using TickAndDashReportingTool.Controllers.V1.Requests;
 using TickAndDashReportingTool.HttpClients.DigitalCodex;
@@ -24,10 +23,8 @@ namespace TickAndDashReportingTool.Services
 
         public async Task<bool> CreateUserAsync(CreateDriverRequest createDriverRequest)
         {
-            // نطبع MSISDN إلى شكل 972XXXXXXXXX (آخر 9 أرقام)
             var msisdn = $"972{createDriverRequest.MSISDN.Substring(createDriverRequest.MSISDN.Trim().Length - 9)}";
 
-            // 1) نطلب من DigitalCodex التحقق من الرقم وإرجاع Token / Address
             var requestData = new RequestData
             {
                 MSISDN = msisdn,
@@ -39,12 +36,8 @@ namespace TickAndDashReportingTool.Services
             var digitalCodexRes = await _digitalCodexClient.ValidateNumberAsync(requestData, "en");
 
             if (!digitalCodexRes.Success)
-            {
-                // الـ Controller رح يتعامل مع false ويرجع 400 برسالة مفهومة
                 return false;
-            }
 
-            // 2) نبني كائن Driver كامل، فيه User بالداخل
             var driver = new Driver
             {
                 Address = string.IsNullOrWhiteSpace(digitalCodexRes.Data.Address)
@@ -58,11 +51,10 @@ namespace TickAndDashReportingTool.Services
                 User = new User
                 {
                     Name = createDriverRequest.DriverName,
-                    RoleId = (int)RolesEnum.Driver
+                    RoleId = 3
                 }
             };
 
-            // 3) DAL يتكفّل بإنشاء صف في Users و Drivers
             return _driverDAL.Insert(driver);
         }
 
