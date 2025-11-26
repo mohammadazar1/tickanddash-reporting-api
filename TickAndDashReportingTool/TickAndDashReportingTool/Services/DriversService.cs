@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using TickAndDashDAL.DAL;
 using TickAndDashDAL.DAL.Interfaces;
+using TickAndDashDAL.Enums;
+using TickAndDashDAL.Models;
 using TickAndDashReportingTool.Controllers.V1.Requests;
-using TickAndDashReportingTool.Exceptions;
-using TickAndDashReportingTool.Helpers;
 using TickAndDashReportingTool.HttpClients.DigitalCodex;
 using TickAndDashReportingTool.HttpClients.DigitalCodex.Interfaces;
+using TickAndDashReportingTool.Helpers;
 using TickAndDashReportingTool.Services.Interfaces;
 
 namespace TickAndDashReportingTool.Services
@@ -24,42 +24,46 @@ namespace TickAndDashReportingTool.Services
 
         public async Task<bool> CreateUserAsync(CreateDriverRequest createDriverRequest)
         {
-            if (createDriverRequest.Password == "" || createDriverRequest.Password == null)
+            // نطبع MSISDN إلى شكل 972XXXXXXXXX (آخر 9 أرقام)
+            var msisdn = $"972{createDriverRequest.MSISDN.Substring(createDriverRequest.MSISDN.Trim().Length - 9)}";
+
+            // 1) نطلب من DigitalCodex التحقق من الرقم وإرجاع Token / Address
+            var requestData = new RequestData
+            {
+                MSISDN = msisdn,
+                Channel = 10,
+                ChannelType = 11,
+                PIN = createDriverRequest.MSISDN
+            };
+
+            var digitalCodexRes = await _digitalCodexClient.ValidateNumberAsync(requestData, "en");
+
+            if (!digitalCodexRes.Success)
+            {
+                // الـ Controller رح يتعامل مع false ويرجع 400 برسالة مفهومة
                 return false;
+            }
 
-            var digitalCodexRes = await _digitalCodexClient.RegisterUserAsync(new RegisterUserDto
+            // 2) نبني كائن Driver كامل، فيه User بالداخل
+            var driver = new Driver
             {
-                Name = $"{createDriverRequest.MSISDN.Trim()}@DPalCap",
-                UserName = createDriverRequest.LicenseNumber.Trim(),
-                Password = createDriverRequest.Password,
-                Email = $"{createDriverRequest.MSISDN}@DPalCap",
-                MSISDN = $"972{createDriverRequest.MSISDN.Trim().Substring(createDriverRequest.MSISDN.Length - 9)}",
-                Location = createDriverRequest.Address,
-                //CanUseBalance = true
-            });
-
-            if (digitalCodexRes == null || digitalCodexRes.Success != true ||
-                digitalCodexRes.Data == null)
-                throw new HttpStatusException(System.Net.HttpStatusCode.BadRequest, "DC");
-
-
-            return _driverDAL.Insert(new Driver
-            {
-                LicenseNumber = createDriverRequest.LicenseNumber,
-                CarId = createDriverRequest.CarId,
-                Password = createDriverRequest.Password.Hash(),
-                Address = createDriverRequest.Address,
+                Address = string.IsNullOrWhiteSpace(digitalCodexRes.Data.Address)
+                            ? createDriverRequest.Address
+                            : digitalCodexRes.Data.Address,
                 Token = digitalCodexRes.Data.Token,
-                MobileNumber = $"972{createDriverRequest.MSISDN.Trim().Substring(createDriverRequest.MSISDN.Length - 9)}",
-                User = new TickAndDashDAL.Models.User { Name = createDriverRequest.DriverName }
-            });
-        }
+                MobileNumber = msisdn,
+                Password = createDriverRequest.Password.Hash(),
+                CarId = createDriverRequest.CarId,
+                LicenseNumber = createDriverRequest.LicenseNumber,
+                User = new User
+                {
+                    Name = createDriverRequest.DriverName,
+                    RoleId = (int)RolesEnum.Driver
+                }
+            };
 
-
-
-        public bool DeleteDriver(int userId)
-        {
-            return _driverDAL.Delete(userId);
+            // 3) DAL يتكفّل بإنشاء صف في Users و Drivers
+            return _driverDAL.Insert(driver);
         }
 
         public List<Driver> GetAllDrivers()
@@ -67,30 +71,28 @@ namespace TickAndDashReportingTool.Services
             return _driverDAL.GetDrivers();
         }
 
+        public bool UpdateDriver(int userId, UpdateDriverRequest updateDriver)
+        {
+            var driver = new Driver
+            {
+                UserId = userId,
+                LicenseNumber = updateDriver.LicenseNumber,
+                CarId = updateDriver.CarId,
+                Address = updateDriver.Address,
+                IsActive = updateDriver.IsActive
+            };
+
+            return _driverDAL.Update(driver);
+        }
+
+        public bool DeleteDriver(int userId)
+        {
+            return _driverDAL.Delete(userId);
+        }
+
         public async Task<Driver> GetDriverBylicenseNumberAsync(string licenseNumber)
         {
             return await _driverDAL.GetDriverByLicenseNumberAsync(licenseNumber);
         }
-
-        public bool UpdateDriver(int userId, UpdateDriverRequest updateDriver)
-        {
-            if (updateDriver.Password == "" || updateDriver.Password == null)
-                updateDriver.Password = "";
-            else
-                updateDriver.Password = updateDriver.Password.Hash();
-
-
-            return _driverDAL.Update(new Driver
-            {
-                LicenseNumber = updateDriver.LicenseNumber,
-                Password = updateDriver.Password,
-                CarId = updateDriver.CarId,
-                Address = updateDriver.Address,
-                UserId = userId,
-                IsActive = updateDriver.IsActive
-            });
-        }
-
-
     }
 }
