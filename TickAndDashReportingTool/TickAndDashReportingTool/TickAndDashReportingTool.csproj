@@ -16,11 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- مسار DAL الصحيح -->
-    <ProjectReference Include="..\..\TickAndDash\TickAndDashDAL\TickAndDashDAL.csproj" />
-
-    <!-- المسار الآخر سليم -->
+    <ProjectReference Include="..\..\TickAndDashDAL\TickAndDashDAL.csproj" />
     <ProjectReference Include="..\TickAndDashSharedServices\TickAndDashSharedServices.csproj" />
-  </ItemGroup>
+</ItemGroup>
+
 
 </Project>
