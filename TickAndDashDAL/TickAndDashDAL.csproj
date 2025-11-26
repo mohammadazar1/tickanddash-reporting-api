@@ -16,9 +16,7 @@
     <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
-    <Compile Include="Models\Driver.cs" />
-    <Compile Include="Models\User.cs" />
-    <Compile Include="Models\Car.cs" />
+    
   </ItemGroup>
 
 </Project>
