@@ -1,18 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TickAndDashDAL.DAL;
+using TickAndDashDAL.Models;      // ← مهم جداً
 using TickAndDashReportingTool.Controllers.V1.Requests;
 using TickAndDashReportingTool.Exceptions;
 using TickAndDashReportingTool.Services.Interfaces;
-
 
 namespace TickAndDashReportingTool.Controllers.V1
 {
     [Route("api/report/[controller]")]
     [ApiController]
-    //[Authorize]
     public class DriversController : ControllerBase
     {
         private readonly IDriversService _driversService;
@@ -28,12 +26,16 @@ namespace TickAndDashReportingTool.Controllers.V1
         public IActionResult Get()
         {
             List<Driver> drivers = _driversService.GetAllDrivers();
+
             drivers.ForEach(d =>
             {
                 d.Password = "";
                 d.Token = "";
-                d.User.Token = ""; ;
-                d.User.FCMToken = "";
+                if (d.User != null)
+                {
+                    d.User.Token = "";
+                    d.User.FCMToken = "";
+                }
             });
 
             return Ok(drivers);
@@ -48,17 +50,18 @@ namespace TickAndDashReportingTool.Controllers.V1
             {
                 createDriverRequest.DriverName = createDriverRequest.LicenseNumber;
 
-                var isMobileExist = await _usersService.IsMobileNumberExist($"972{createDriverRequest.MSISDN.Substring(createDriverRequest.MSISDN.Trim().Length - 9)}");
+                var msisdn = $"972{createDriverRequest.MSISDN.Substring(createDriverRequest.MSISDN.Trim().Length - 9)}";
+
+                var isMobileExist = await _usersService.IsMobileNumberExist(msisdn);
 
                 if (isMobileExist)
                 {
                     return BadRequest(new
                     {
-                        messageAr = "عذرًا، رقم الموبايل  المدخل لديه حساب مسجل",
+                        messageAr = "عذرًا، رقم الموبايل المدخل لديه حساب مسجل",
                         messageEn = "Sorry, mobile number has active account"
                     });
                 }
-
 
                 var driver = await _driversService.GetDriverBylicenseNumberAsync(createDriverRequest.LicenseNumber);
                 if (driver != null)
@@ -72,7 +75,7 @@ namespace TickAndDashReportingTool.Controllers.V1
 
                 result = await _driversService.CreateUserAsync(createDriverRequest);
             }
-            catch (HttpStatusException ex)
+            catch (HttpStatusException)
             {
                 return BadRequest(new
                 {
@@ -98,12 +101,10 @@ namespace TickAndDashReportingTool.Controllers.V1
             return Ok(result);
         }
 
-        // DELETE api/<DriversController>/5
         [HttpDelete("{userId}")]
         public IActionResult Delete(int userId)
         {
             bool result = _driversService.DeleteDriver(userId);
-
             return Ok(result);
         }
     }
