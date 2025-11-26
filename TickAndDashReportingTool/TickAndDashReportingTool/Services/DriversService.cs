@@ -6,6 +6,7 @@ using TickAndDashReportingTool.Controllers.V1.Requests;
 using TickAndDashReportingTool.Helpers;
 using TickAndDashReportingTool.HttpClients.DigitalCodex;              // فيه RegisterUserDto و DigitalCodexResponseDto
 using TickAndDashReportingTool.HttpClients.DigitalCodex.Interfaces;
+using TickAndDashReportingTool.Services.Interfaces;
 
 namespace TickAndDashReportingTool.Services
 {
