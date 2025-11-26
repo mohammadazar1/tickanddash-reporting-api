@@ -21,17 +21,17 @@ namespace TickAndDashDAL.DAL
         public async Task<Driver> GetDriverByLicenseNumberAsync(string licenseNumber)
         {
             string query = $@"
-                SELECT u.Id, u.Name, u.FCMToken, u.Token,
-                       d.UserId, d.Password, d.CarId, d.LicenseNumber,
-                       d.MobileNumber, d.Address, d.Token,
-                       c.Id, c.RegistrationPlate, c.Model, c.ModelYear,
-                       c.SeatCount, c.CarCode,
-                       Itr.Id, Itr.Name, Itr.Description
-                FROM Users u, Drivers d, Cars c, Transportation_Itineraries Itr
-                WHERE u.Id = d.UserId
-                AND d.CarId = c.Id
-                AND c.ItineraryId = Itr.Id
-                AND d.LicenseNumber = @licenseNumber COLLATE SQL_Latin1_General_CP1_CI_AS";
+                SELECT 
+                    u.Id, u.Name, u.FCMToken, u.Token, 
+                    d.UserId, d.Password, d.CarId, d.LicenseNumber, d.MobileNumber,
+                    d.Address, d.Token, 
+                    c.Id, c.RegistrationPlate, c.Model, c.ModelYear, c.SeatCount, c.CarCode, 
+                    Itr.Id, Itr.Name, Itr.Description
+                FROM Users U, Drivers D, Cars C, Transportation_Itineraries Itr
+                WHERE u.Id = d.UserId 
+                  AND d.CarId = c.Id 
+                  AND c.ItineraryId = Itr.Id
+                  AND d.LicenseNumber = @licenseNumber COLLATE SQL_Latin1_General_CP1_CI_AS";
 
             using (var sqlConnection = GetTickAndDashConnection())
             {
@@ -56,16 +56,16 @@ namespace TickAndDashDAL.DAL
         public async Task<Driver> GetDriverByUserIdAsync(int userId)
         {
             string query = $@"
-                SELECT u.Id, u.Name, u.FCMToken, u.Language,
-                       d.UserId, d.Password, d.CarId, d.LicenseNumber,
-                       d.Address, d.Token, d.MobileOS, d.MobileNumber,
-                       c.Id, c.RegistrationPlate, c.Model, c.ModelYear,
-                       Itr.Id, Itr.Name, Itr.Description
-                FROM Users u, Drivers d, Cars c, Transportation_Itineraries Itr
-                WHERE u.Id = d.UserId
-                AND d.CarId = c.Id
-                AND c.ItineraryId = Itr.Id
-                AND d.UserId = @userId";
+                SELECT 
+                    u.Id, u.Name, u.FCMToken, u.Language,
+                    d.UserId, d.Password, d.CarId, d.LicenseNumber, d.Address, d.Token, d.MobileOS, d.MobileNumber,
+                    c.Id, c.RegistrationPlate, c.Model, c.ModelYear,
+                    Itr.Id, Itr.Name, Itr.Description
+                FROM Users U, Drivers D, Cars C, Transportation_Itineraries Itr
+                WHERE u.Id = d.UserId 
+                  AND d.CarId = c.Id 
+                  AND c.ItineraryId = Itr.Id
+                  AND d.UserId = @userId";
 
             using (var sqlConnection = GetTickAndDashConnection())
             {
@@ -90,9 +90,9 @@ namespace TickAndDashDAL.DAL
         {
             string query = $@"
                 SELECT * 
-                FROM Drivers d, Cars c, Users u
+                FROM [TickAndDash].[{_defaultschema}].[{_driversTable}] d, Cars c, Users u
                 WHERE d.CarId = c.Id 
-                AND d.UserId = u.Id";
+                  AND d.UserId = u.Id";
 
             using (var sqlConnection = GetTickAndDashConnection())
             {
@@ -115,29 +115,29 @@ namespace TickAndDashDAL.DAL
             {
                 var sql = $@"
                     INSERT INTO Users (Name, RoleId)
-                    VALUES(@DriverName, 3)
+                        VALUES(@DriverName, @RoleId);
 
-                    DECLARE @UserId INT = SCOPE_IDENTITY()
+                    DECLARE @UserId INT = (SELECT SCOPE_IDENTITY());
 
-                    INSERT INTO Drivers (UserId, LicenseNumber, Password, CarId, Address, Token, MobileNumber)
-                    VALUES(@UserId, @LicenseNumber, @Password, @CarId, @Address, @Token, @MobileNumber)
+                    INSERT INTO {_driversTable} 
+                        (UserId, LicenseNumber, Password, CarId, Address, Token, MobileNumber)
+                    OUTPUT Inserted.UserId
+                        VALUES(@UserId, @LicenseNumber, @Password, @CarId, @Address, @Token, @MobileNumber);";
 
-                    SELECT @UserId";
-
-                var newUserId = connection.ExecuteScalar<int>(sql,
+                return connection.Execute(
+                    sql,
                     new
                     {
-                        DriverName = driver.User.Name,
                         driver.LicenseNumber,
                         driver.Password,
                         driver.CarId,
                         driver.Address,
                         driver.Token,
-                        driver.MobileNumber
-                    });
-
-                driver.UserId = newUserId;
-                return newUserId > 0;
+                        driver.MobileNumber,
+                        DriverName = driver.User?.Name,
+                        RoleId = driver.User?.RoleId ?? (int)RolesEnum.Driver
+                    }
+                ) > 0;
             }
         }
 
@@ -146,23 +146,27 @@ namespace TickAndDashDAL.DAL
             using (var connection = GetTickAndDashConnection())
             {
                 var sql = $@"
-                    UPDATE Drivers
-                    SET LicenseNumber = @LicenseNumber,
-                        {(string.IsNullOrEmpty(driver.Password) ? "" : "Password = @Password,")}
+                    UPDATE {_driversTable}
+                    SET 
+                        LicenseNumber = @LicenseNumber,
+                        {(driver.Password == "" ? "" : "Password = @Password,")}
                         CarId = @CarId,
                         Address = @Address,
                         IsActive = @IsActive
                     WHERE UserId = @UserId";
 
-                return connection.Execute(sql, new
-                {
-                    driver.UserId,
-                    driver.LicenseNumber,
-                    driver.Password,
-                    driver.CarId,
-                    driver.Address,
-                    driver.IsActive
-                }) > 0;
+                return connection.Execute(
+                    sql,
+                    new
+                    {
+                        driver.UserId,
+                        driver.LicenseNumber,
+                        driver.Password,
+                        driver.CarId,
+                        driver.Address,
+                        driver.IsActive
+                    }
+                ) > 0;
             }
         }
 
@@ -170,29 +174,31 @@ namespace TickAndDashDAL.DAL
         {
             using (var connection = GetTickAndDashConnection())
             {
-                var sql = $@"DELETE FROM Drivers WHERE UserId = @UserId";
+                var sql = $@"DELETE FROM {_driversTable} WHERE UserId = @UserId";
 
-                return connection.Execute(sql, new { userId }) > 0;
+                return connection.Execute(sql, new { UserId = userId }) > 0;
             }
         }
 
         public async Task<bool> IsDriverActiveAsync(int driverId)
         {
-            string sql = "SELECT IsActive FROM Drivers WHERE UserId = @driverId";
+            string sql = @"SELECT IsActive FROM Drivers WHERE UserId = @driverId";
 
             using (var connection = GetTickAndDashConnection())
             {
-                return (await connection.QueryAsync<bool>(sql, new { driverId })).FirstOrDefault();
+                var res = await connection.QueryAsync<bool>(sql, new { driverId });
+                return res.FirstOrDefault();
             }
         }
 
         public async Task<int> GetDriverUserIdByMobileNumberAsync(string mobileNumber)
         {
-            string sql = "SELECT UserId FROM Drivers WHERE MobileNumber = @mobileNumber";
+            string sql = @"SELECT UserId FROM Drivers WHERE MobileNumber = @mobileNumber";
 
             using (var connection = GetTickAndDashConnection())
             {
-                return (await connection.QueryAsync<int>(sql, new { mobileNumber })).FirstOrDefault();
+                var res = await connection.QueryAsync<int>(sql, new { mobileNumber });
+                return res.FirstOrDefault();
             }
         }
 
@@ -200,13 +206,19 @@ namespace TickAndDashDAL.DAL
         {
             using (var connection = GetTickAndDashConnection())
             {
-                string sql = @"UPDATE Drivers SET MobileOS = @mobileOS WHERE UserId = @driverId";
+                var sql = @"
+                    UPDATE Drivers 
+                    SET MobileOS = @mobileOS
+                    WHERE UserId = @driverId";
 
-                return await connection.ExecuteAsync(sql, new
-                {
-                    mobileOS = ((MobileOSEnum)Enum.Parse(typeof(MobileOSEnum), mobileOS, true)).ToString(),
-                    driverId
-                }) > 0;
+                return await connection.ExecuteAsync(
+                    sql,
+                    new
+                    {
+                        mobileOS = ((MobileOSEnum)Enum.Parse(typeof(MobileOSEnum), mobileOS, true)).ToString(),
+                        driverId
+                    }
+                ) > 0;
             }
         }
 
@@ -216,8 +228,8 @@ namespace TickAndDashDAL.DAL
                 SELECT d.UserId, u.Id, u.Language, u.FCMToken
                 FROM Drivers d, Cars c, Users u
                 WHERE c.LoggedInDriverId = d.UserId
-                AND u.Id = d.UserId
-                AND c.Id = @carId";
+                  AND u.Id = d.UserId
+                  AND c.Id = @carId";
 
             using (var connection = GetTickAndDashConnection())
             {
