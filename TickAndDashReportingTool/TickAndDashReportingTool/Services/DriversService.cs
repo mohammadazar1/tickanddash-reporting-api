@@ -3,12 +3,9 @@ using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 using TickAndDashReportingTool.Controllers.V1.Requests;
-using TickAndDashReportingTool.HttpClients.DigitalCodex;
-using TickAndDashReportingTool.HttpClients.DigitalCodex.Interfaces;
-using TickAndDashReportingTool.HttpClients.DigitalCodex.DTOs;   // *** إضافة مهمة ***
 using TickAndDashReportingTool.Helpers;
-using TickAndDashReportingTool.Services.Interfaces;
-
+using TickAndDashReportingTool.HttpClients.DigitalCodex;              // فيه RegisterUserDto و DigitalCodexResponseDto
+using TickAndDashReportingTool.HttpClients.DigitalCodex.Interfaces;
 
 namespace TickAndDashReportingTool.Services
 {
@@ -23,51 +20,14 @@ namespace TickAndDashReportingTool.Services
             _digitalCodexClient = digitalCodexClient;
         }
 
-        public async Task<bool> CreateUserAsync(CreateDriverRequest createDriverRequest)
-        {
-            var msisdn = $"972{createDriverRequest.MSISDN.Substring(createDriverRequest.MSISDN.Trim().Length - 9)}";
-
-            // Register user in Digital Codex
-            var registerDto = new RegisterUserDto
-            {
-                MSISDN = msisdn,
-                PIN = createDriverRequest.Password,
-                Channel = 10,
-                ChannelType = 11
-            };
-
-            var registerResponse = await _digitalCodexClient.RegisterUserAsync(registerDto);
-
-            if (registerResponse == null || !registerResponse.Success)
-            {
-                return false;
-            }
-
-            var driver = new Driver
-            {
-                Address = string.IsNullOrWhiteSpace(registerResponse.Data.Address)
-                            ? createDriverRequest.Address
-                            : registerResponse.Data.Address,
-
-                Token = registerResponse.Data.Token,
-                MobileNumber = msisdn,
-                Password = createDriverRequest.Password.Hash(),
-                CarId = createDriverRequest.CarId,
-                LicenseNumber = createDriverRequest.LicenseNumber,
-
-                User = new User
-                {
-                    Name = createDriverRequest.DriverName,
-                    RoleId = 3
-                }
-            };
-
-            return _driverDAL.Insert(driver);
-        }
-
         public List<Driver> GetAllDrivers()
         {
             return _driverDAL.GetDrivers();
+        }
+
+        public async Task<Driver> GetDriverBylicenseNumberAsync(string licenseNumber)
+        {
+            return await _driverDAL.GetDriverByLicenseNumberAsync(licenseNumber);
         }
 
         public bool UpdateDriver(int userId, UpdateDriverRequest updateDriver)
@@ -89,9 +49,51 @@ namespace TickAndDashReportingTool.Services
             return _driverDAL.Delete(userId);
         }
 
-        public async Task<Driver> GetDriverBylicenseNumberAsync(string licenseNumber)
+        public async Task<bool> CreateUserAsync(CreateDriverRequest createDriverRequest)
         {
-            return await _driverDAL.GetDriverByLicenseNumberAsync(licenseNumber);
+            // نفس طريقة تكوين رقم الجوال الموجودة في الكنترولر
+            var msisdn = $"972{createDriverRequest.MSISDN.Substring(createDriverRequest.MSISDN.Trim().Length - 9)}";
+
+            // هذا هو DTO الحقيقي الموجود في:
+            // HttpClients/DigitalCodex/DTOs/RegisterUserDto.cs
+            var registerUser = new RegisterUserDto
+            {
+                // الخصائص الباقية إلها default داخل الكلاس
+                MSISDN   = msisdn,
+                Name     = createDriverRequest.DriverName,
+                UserName = msisdn,
+                Password = createDriverRequest.Password,
+                Location = createDriverRequest.Address
+            };
+
+            // نستعمل RegisterUserAsync بدل ValidateNumberAsync
+            var digitalCodexRes = await _digitalCodexClient.RegisterUserAsync(registerUser);
+
+            if (digitalCodexRes == null || !digitalCodexRes.Success || digitalCodexRes.Data == null)
+                return false;
+
+            // على حسب الكلاسات الموجودة عادة:
+            // DigitalCodexRegisterUserResponse فيه Token و Address
+            var dcData = digitalCodexRes.Data;
+
+            var driver = new Driver
+            {
+                Address = string.IsNullOrWhiteSpace(dcData.Address)
+                            ? createDriverRequest.Address
+                            : dcData.Address,
+                Token         = dcData.Token,
+                MobileNumber  = msisdn,
+                Password      = createDriverRequest.Password.Hash(),
+                CarId         = createDriverRequest.CarId,
+                LicenseNumber = createDriverRequest.LicenseNumber,
+                User = new User
+                {
+                    Name   = createDriverRequest.DriverName,
+                    RoleId = 3   // Driver
+                }
+            };
+
+            return _driverDAL.Insert(driver);
         }
     }
 }
