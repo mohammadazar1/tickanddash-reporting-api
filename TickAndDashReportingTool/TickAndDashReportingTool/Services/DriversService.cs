@@ -5,8 +5,8 @@ using TickAndDashDAL.Models;
 using TickAndDashReportingTool.Controllers.V1.Requests;
 using TickAndDashReportingTool.Helpers;
 using TickAndDashReportingTool.HttpClients.DigitalCodex.Interfaces;
-using TickAndDashReportingTool.HttpClients.DigitalCodex.Requests;
-using TickAndDashReportingTool.HttpClients.DigitalCodex;
+using TickAndDashReportingTool.HttpClients.DigitalCodex.DTOs;
+
 using TickAndDashReportingTool.Services.Interfaces;
 
 namespace TickAndDashReportingTool.Services
