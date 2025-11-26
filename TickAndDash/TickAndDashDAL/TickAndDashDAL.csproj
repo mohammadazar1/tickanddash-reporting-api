@@ -19,10 +19,4 @@
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="Models\Driver.cs" />
-    <Compile Include="Models\User.cs" />
-    <Compile Include="Models\Car.cs" />
-  </ItemGroup>
-
 </Project>
