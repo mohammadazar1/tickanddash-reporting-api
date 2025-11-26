@@ -34,7 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\TickAndDashDAL\TickAndDashDAL.csproj" />
+  
+    <ProjectReference Include="..\TickAndDashDAL\TickAndDashDAL.csproj" />
+    <ProjectReference Include="..\TickAndDashSharedServices\TickAndDashSharedServices.csproj" />
+
+
   </ItemGroup>
   
   <!-- 
