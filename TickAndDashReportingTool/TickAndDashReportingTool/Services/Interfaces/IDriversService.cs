@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using TickAndDashDAL.DAL;
+using TickAndDashDAL.Models; // الصحيح
 using TickAndDashReportingTool.Controllers.V1.Requests;
 
 namespace TickAndDashReportingTool.Services.Interfaces
