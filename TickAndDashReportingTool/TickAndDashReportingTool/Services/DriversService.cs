@@ -3,9 +3,10 @@ using System.Threading.Tasks;
 using TickAndDashDAL.DAL.Interfaces;
 using TickAndDashDAL.Models;
 using TickAndDashReportingTool.Controllers.V1.Requests;
-using TickAndDashReportingTool.HttpClients.DigitalCodex;
-using TickAndDashReportingTool.HttpClients.DigitalCodex.Interfaces;
 using TickAndDashReportingTool.Helpers;
+using TickAndDashReportingTool.HttpClients.DigitalCodex.Interfaces;
+using TickAndDashReportingTool.HttpClients.DigitalCodex.Requests;
+using TickAndDashReportingTool.HttpClients.DigitalCodex;
 using TickAndDashReportingTool.Services.Interfaces;
 
 namespace TickAndDashReportingTool.Services
@@ -25,29 +26,34 @@ namespace TickAndDashReportingTool.Services
         {
             var msisdn = $"972{createDriverRequest.MSISDN.Substring(createDriverRequest.MSISDN.Trim().Length - 9)}";
 
-            var requestData = new RequestData
+            // Register user in Digital Codex
+            var registerDto = new RegisterUserDto
             {
                 MSISDN = msisdn,
+                PIN = createDriverRequest.Password,
                 Channel = 10,
-                ChannelType = 11,
-                PIN = createDriverRequest.MSISDN
+                ChannelType = 11
             };
 
-            var digitalCodexRes = await _digitalCodexClient.ValidateNumberAsync(requestData, "en");
+            var registerResponse = await _digitalCodexClient.RegisterUserAsync(registerDto);
 
-            if (!digitalCodexRes.Success)
+            if (registerResponse == null || !registerResponse.Success)
+            {
                 return false;
+            }
 
             var driver = new Driver
             {
-                Address = string.IsNullOrWhiteSpace(digitalCodexRes.Data.Address)
+                Address = string.IsNullOrWhiteSpace(registerResponse.Data.Address)
                             ? createDriverRequest.Address
-                            : digitalCodexRes.Data.Address,
-                Token = digitalCodexRes.Data.Token,
+                            : registerResponse.Data.Address,
+
+                Token = registerResponse.Data.Token,
                 MobileNumber = msisdn,
                 Password = createDriverRequest.Password.Hash(),
                 CarId = createDriverRequest.CarId,
                 LicenseNumber = createDriverRequest.LicenseNumber,
+
                 User = new User
                 {
                     Name = createDriverRequest.DriverName,
