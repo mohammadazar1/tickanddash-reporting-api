@@ -1,54 +1,41 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using System;
 using Serilog;
-using Microsoft.Extensions.Configuration;
+using Serilog.Events;
 
-namespace TickAndDash
+namespace TickAndDashReportingTool
 {
     public class Program
     {
         public static void Main(string[] args)
         {
-
-            var configuration = new ConfigurationBuilder()
-                 .AddJsonFile("appsettings.json")
-                 .Build();
-
+            // Configure Serilog logging
             Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(configuration)
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .WriteTo.Console() // For local debugging
+                .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day) // For Azure/Kudu logs
+                .Enrich.FromLogContext()
                 .CreateLogger();
 
             try
             {
+                Log.Information("Starting TickAndDash Reporting Tool API...");
                 CreateHostBuilder(args).Build().Run();
-
-                Log.Information("Tick And Dash Starting Up...");
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Tick And Dash Failed To Start correctly...");
+                Log.Fatal(ex, "API crashed on startup!");
             }
             finally
             {
                 Log.CloseAndFlush();
             }
-
-            //try
-            //{
-            //    CreateHostBuilder(args).Build().Run();
-            //}
-            //catch (Exception ex)
-            //{
-
-            //}
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
-             Host.CreateDefaultBuilder(args)
-            .UseSerilog((hostingContext, loggerConfiguration) =>
-                    loggerConfiguration
-                    .ReadFrom.Configuration(hostingContext.Configuration))
+            Host.CreateDefaultBuilder(args)
+                .UseSerilog() // 🔥 Activating Serilog
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
