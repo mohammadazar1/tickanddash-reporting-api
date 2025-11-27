@@ -1,6 +1,11 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace TickAndDashReportingTool
 {
@@ -10,12 +15,12 @@ namespace TickAndDashReportingTool
         {
             try
             {
-                CreateHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
+
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Unhandled exception: " + ex);
-                throw;
+
             }
         }
 
