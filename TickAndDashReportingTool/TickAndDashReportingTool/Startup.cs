@@ -5,14 +5,18 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Serilog;
 using System;
-using System.Net;
-using TickAndDashReportingTool.Exceptions;
-using TickAndDashReportingTool.Installers.Extensions;
-using TickAndDashReportingTool.Options;
+using TickAndDash.Controllers.V1.Responses;
+using TickAndDash.Enums;
+using TickAndDash.Installers.Interfaces.Extensions;
+using TickAndDash.Options;
+using TickAndDash.Services;
 
-namespace TickAndDashReportingTool
+namespace TickAndDash
 {
     public class Startup
     {
@@ -26,142 +30,113 @@ namespace TickAndDashReportingTool
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            try
-            {
-                services.InstallServicesInAssembly(Configuration);
-            }
-            catch (Exception ex)
-            {
-                // Log the error - this will be visible in Azure logs
-                System.Diagnostics.Debug.WriteLine($"Error in ConfigureServices: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"InnerException: {ex.InnerException.Message}");
-                }
-                throw; // Re-throw to prevent silent failures
-            }
+            services.InstallServicesInAssembly(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IUsersService usersService, ILoggerFactory loggerFactory)
         {
-            // Static files should be FIRST, before exception handler
-            app.UseStaticFiles();
 
-            // Add Content Security Policy to prevent malicious script injection
-            app.Use(async (context, next) =>
-            {
-                // Only apply CSP to HTML pages, not API endpoints
-                if (context.Request.Path.StartsWithSegments("/api") == false)
-                {
-                    context.Response.Headers.Add("Content-Security-Policy", 
-                        "default-src 'self'; " +
-                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com; " +
-                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; " +
-                        "font-src 'self' https://fonts.gstatic.com data:; " +
-                        "img-src 'self' data: https:; " +
-                        "connect-src 'self' https://tickanddash-hmexcjh6ewescwa2.canadacentral-01.azurewebsites.net https://tickanddash-backend-api-cmghdnbbedfzapfd.canadacentral-01.azurewebsites.net; " +
-                        "frame-ancestors 'none'; " +
-                        "base-uri 'self'; " +
-                        "form-action 'self'");
-                }
-                await next();
-            });
+            //loggerFactory.AddNLog();
+            loggerFactory.AddSerilog();
+            app.UseSerilogRequestLogging();
 
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
+            //app.UseRequestLocalization(options =>
+            //{
+            //    options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("ar");
+            //    options.SupportedCultures = cultures;
+            //    options.SupportedUICultures = cultures;
+            //});
+
             app.UseExceptionHandler(appBuilder =>
             {
                 appBuilder.Run(async context =>
                 {
-                    var exceptionContext = context.Features.Get<IExceptionHandlerFeature>();
-                    string message = "An error occurred while processing your request.";
-                    string stackTrace = null;
+                    var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
+                    Guid errorId = Guid.NewGuid();
 
-                    // For HTML requests, return HTML error page
-                    var acceptHeader = context.Request.Headers["Accept"].ToString();
-                    bool isHtmlRequest = acceptHeader.Contains("text/html") || 
-                                        context.Request.Path.Value?.EndsWith(".html") == true ||
-                                        context.Request.Path.Value == "/";
+                    var x = exceptionHandlerFeature.Error.Message;
+                    context.Response.ContentType = "application/json";
+                    context.Response.StatusCode = 500;
 
-                    if (exceptionContext != null && exceptionContext.Error != null)
+                    if (exceptionHandlerFeature != null)
                     {
-                        var exception = exceptionContext.Error;
-                        message = exception.Message ?? message;
-                        stackTrace = env.IsDevelopment() ? exception.StackTrace : null;
+                        //var configuration = new ConfigurationBuilder()
+                        //   .AddJsonFile("appsettings.json")
+                        //   .Build();
 
-                        if (exception is HttpStatusException httpStatusException)
-                        {
-                            context.Response.StatusCode = (int)httpStatusException.StatusCode;
-                            message = httpStatusException.Message ?? message;
-                        }
-                        else
-                        {
-                            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                        }
+                        Microsoft.Extensions.Logging.ILogger logger = loggerFactory.CreateLogger<Startup>();
+                        logger.LogInformation($"{x.ToString()}");
+                        //logger.LogCritical("{ErrorId}: {StatusCode}", "{Error}", "{ErrorMessage}",
+                        //   errorId,
+                        //    500, exceptionHandlerFeature.Error
+                        //    , exceptionHandlerFeature.Error.Message);
+                        //Log.ForContext("ErrorId", errorId).ForContext("StatusCode", 500)
+                        //.ForContext("Error", exceptionHandlerFeature.Error).
+                        //ForContext("Message", exceptionHandlerFeature.Error.Message).
+                        //Fatal("An Global Error Occurred");
                     }
 
-                    if (isHtmlRequest)
+                    var response = JsonConvert.SerializeObject(new GeneralResponse2<object>
                     {
-                        context.Response.ContentType = "text/html";
-                        var html = $@"
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Error {context.Response.StatusCode}</title>
-</head>
-<body>
-    <h1>Error {context.Response.StatusCode}</h1>
-    <p>{System.Net.WebUtility.HtmlEncode(message)}</p>
-    {(stackTrace != null ? $"<pre>{System.Net.WebUtility.HtmlEncode(stackTrace)}</pre>" : "")}
-</body>
-</html>";
-                        await context.Response.WriteAsync(html);
-                    }
-                    else
-                    {
-                        context.Response.ContentType = "application/json";
-                        var response = JsonConvert.SerializeObject(new
-                        {
-                            StatusCode = context.Response.StatusCode,
-                            Success = false,
-                            Message = message,
-                            StackTrace = stackTrace
-                        });
-                        await context.Response.WriteAsync(response);
-                    }
+                        //ErrorId = errorId,
+                        success = false,
+                        code = Generalcodes.Internal.ToString(),
+                        message = x.ToString()
+                    });
+
+
+                    await context.Response.WriteAsync(response);
                 });
+
+
             });
 
             var swaggerOptions = new SwaggerOptions();
             Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
 
-            // Use default values if SwaggerOptions are not configured
-            // Swagger document name is "v1" (from SwaggerInstaller)
-            var jsonRoute = swaggerOptions.JsonRoute ?? "swagger/{documentName}/swagger.json";
-            var uiEndpoint = swaggerOptions.UiEndpoint ?? "v1/swagger.json";
-            var description = swaggerOptions.Description ?? "Tick&Dash Reporting Tool APIs";
-
-            app.UseSwagger(option => { option.RouteTemplate = jsonRoute; });
+            app.UseSwagger(option => { option.RouteTemplate = swaggerOptions.JsonRoute; });
 
             app.UseSwaggerUI(option =>
             {
-                option.SwaggerEndpoint(uiEndpoint, description);
+                option.SwaggerEndpoint(swaggerOptions.UiEndpoint, swaggerOptions.Description);
             });
-            
+
+            app.UseStaticFiles();
+            app.UseAuthentication();
+            //var cultures = new List<CultureInfo> {
+            //    new CultureInfo("ar"),
+            //    new CultureInfo("en")
+            //};
+            //var requestLocalizationOptions = new RequestLocalizationOptions
+            //{
+            //    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("ar"),
+            //    SupportedCultures =  new List<CultureInfo> { new CultureInfo("en") },//cultures,
+            //    SupportedUICultures = cultures/* new List<CultureInfo> { new CultureInfo("en") }*/
+            //};
+            //requestLocalizationOptions.RequestCultureProviders.Insert(0, new CustomRequestCultureProvider(async httpContext =>
+            //{
+            //    var user = httpContext.User as ClaimsPrincipal;
+            //    int.TryParse(user.FindFirstValue(ClaimsEnum.UserId.ToString()), out int userId);
+            //    string language = await usersService.GetUserLanguageAsync(userId) ?? "ar";
+            //    httpContext.Request.Headers.Add("Content-Language", language);
+            //    return new ProviderCultureResult(language);
+            //}));
+            //app.UseRequestLocalization(requestLocalizationOptions);
             app.UseRouting();
             app.UseCors("AllowAll");
-            app.UseAuthentication();
             app.UseAuthorization();
-            
+
+            var options = app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>();
+            app.UseRequestLocalization(options.Value);
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapFallbackToFile("index.html");
             });
         }
     }
