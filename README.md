@@ -14,7 +14,7 @@ Reporting Tool API for Tick & Dash application.
 dotnet restore TickAndDashReportingTool/TickAndDashReportingTool/TickAndDashReportingTool.csproj && dotnet publish TickAndDashReportingTool/TickAndDashReportingTool/TickAndDashReportingTool.csproj -c Release -o ./publish
 ```
 
-## ▶️ Start Command
+## ▶️ Start Com
 
 ```bash
 dotnet ./publish/TickAndDashReportingTool.dll
