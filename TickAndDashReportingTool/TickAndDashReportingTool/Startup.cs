@@ -87,8 +87,14 @@ namespace TickAndDashReportingTool
                 });
             });
 
+            // Configure Swagger with safe defaults in case configuration section is missing
             var swaggerOptions = new SwaggerOptions();
             Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
+
+            // Fallback defaults so that Swagger does not crash app startup if config is missing
+            swaggerOptions.JsonRoute ??= "swagger/{documentName}/swagger.json";
+            swaggerOptions.UiEndpoint ??= "/swagger/v1/swagger.json";
+            swaggerOptions.Description ??= "Tick & Dash Reporting API v1";
 
             app.UseSwagger(option => { option.RouteTemplate = swaggerOptions.JsonRoute; });
 
