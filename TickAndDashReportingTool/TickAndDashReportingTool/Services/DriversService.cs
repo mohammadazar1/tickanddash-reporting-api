@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TickAndDashDAL.DAL;
 using TickAndDashDAL.DAL.Interfaces;
@@ -15,33 +16,48 @@ namespace TickAndDashReportingTool.Services
     {
         private readonly IDriversDAL _driverDAL;
         private readonly IDigitalCodexClient _digitalCodexClient;
+        private readonly IConfiguration _configuration;
 
-        public DriversService(IDriversDAL driverDAL, IDigitalCodexClient digitalCodexClient)
+        public DriversService(IDriversDAL driverDAL, IDigitalCodexClient digitalCodexClient, IConfiguration configuration)
         {
             _driverDAL = driverDAL;
             _digitalCodexClient = digitalCodexClient;
+            _configuration = configuration;
         }
 
         public async Task<bool> CreateUserAsync(CreateDriverRequest createDriverRequest)
         {
-            if (createDriverRequest.Password == "" || createDriverRequest.Password == null)
+            if (string.IsNullOrWhiteSpace(createDriverRequest.Password))
                 return false;
 
-            var digitalCodexRes = await _digitalCodexClient.RegisterUserAsync(new RegisterUserDto
+            // Read feature flag: default to true if missing
+            var dcEnabledValue = _configuration["DIGITAL_CODEX_ENABLED"];
+            var isDcEnabled = string.IsNullOrWhiteSpace(dcEnabledValue) || dcEnabledValue.Equals("true", System.StringComparison.OrdinalIgnoreCase);
+
+            string tokenToStore;
+            if (isDcEnabled)
             {
-                Name = $"{createDriverRequest.MSISDN.Trim()}@DPalCap",
-                UserName = createDriverRequest.LicenseNumber.Trim(),
-                Password = createDriverRequest.Password,
-                Email = $"{createDriverRequest.MSISDN}@DPalCap",
-                MSISDN = $"972{createDriverRequest.MSISDN.Trim().Substring(createDriverRequest.MSISDN.Length - 9)}",
-                Location = createDriverRequest.Address,
-                //CanUseBalance = true
-            });
+                var digitalCodexRes = await _digitalCodexClient.RegisterUserAsync(new RegisterUserDto
+                {
+                    Name = $"{createDriverRequest.MSISDN.Trim()}@DPalCap",
+                    UserName = createDriverRequest.LicenseNumber.Trim(),
+                    Password = createDriverRequest.Password,
+                    Email = $"{createDriverRequest.MSISDN}@DPalCap",
+                    MSISDN = $"972{createDriverRequest.MSISDN.Trim().Substring(createDriverRequest.MSISDN.Length - 9)}",
+                    Location = createDriverRequest.Address,
+                    //CanUseBalance = true
+                });
 
-            if (digitalCodexRes == null || digitalCodexRes.Success != true ||
-                digitalCodexRes.Data == null)
-                throw new HttpStatusException(System.Net.HttpStatusCode.BadRequest, "DC");
+                if (digitalCodexRes == null || digitalCodexRes.Success != true || digitalCodexRes.Data == null)
+                    throw new HttpStatusException(System.Net.HttpStatusCode.BadRequest, "DC");
 
+                tokenToStore = digitalCodexRes.Data.Token;
+            }
+            else
+            {
+                // Skip DigitalCodex and use a placeholder token
+                tokenToStore = "LOCAL-TOKEN";
+            }
 
             return _driverDAL.Insert(new Driver
             {
@@ -49,7 +65,7 @@ namespace TickAndDashReportingTool.Services
                 CarId = createDriverRequest.CarId,
                 Password = createDriverRequest.Password.Hash(),
                 Address = createDriverRequest.Address,
-                Token = digitalCodexRes.Data.Token,
+                Token = tokenToStore,
                 MobileNumber = $"972{createDriverRequest.MSISDN.Trim().Substring(createDriverRequest.MSISDN.Length - 9)}",
                 User = new TickAndDashDAL.Models.User { Name = createDriverRequest.DriverName }
             });
