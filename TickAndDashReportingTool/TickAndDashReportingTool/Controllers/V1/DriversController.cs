@@ -112,13 +112,16 @@ namespace TickAndDashReportingTool.Controllers.V1
                     messageEn = "Sorry, please check the entered mobile number."
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Return a clear message instead of silent false to help UI
+                // Return exception details to help diagnose the root cause (temporary for debugging)
+                var inner = ex.InnerException?.Message;
+                var detailsAr = inner == null ? ex.Message : $"{ex.Message} | {inner}";
+                var detailsEn = inner == null ? ex.Message : $"{ex.Message} | {inner}";
                 return BadRequest(new
                 {
-                    messageAr = "حدث خطأ أثناء إنشاء السائق. يرجى التحقق من البيانات والمحاولة لاحقًا.",
-                    messageEn = "An error occurred while creating the driver. Please verify input and try again."
+                    messageAr = $"تفاصيل الخطأ: {detailsAr}",
+                    messageEn = $"Error details: {detailsEn}"
                 });
             }
 
