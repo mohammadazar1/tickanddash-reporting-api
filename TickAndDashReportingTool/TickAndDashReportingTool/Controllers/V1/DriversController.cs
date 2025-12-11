@@ -17,11 +17,13 @@ namespace TickAndDashReportingTool.Controllers.V1
     {
         private readonly IDriversService _driversService;
         private readonly IUsersService _usersService;
+        private readonly ICarsService _carsService;
 
-        public DriversController(IDriversService driversService, IUsersService usersService)
+        public DriversController(IDriversService driversService, IUsersService usersService, ICarsService carsService)
         {
             _driversService = driversService;
             _usersService = usersService;
+            _carsService = carsService;
         }
 
         [HttpGet]
@@ -47,6 +49,22 @@ namespace TickAndDashReportingTool.Controllers.V1
             try
             {
                 createDriverRequest.DriverName = createDriverRequest.LicenseNumber;
+
+                // Resolve CarId from RegistrationPlate if CarId is missing or zero
+                if ((createDriverRequest.CarId == 0 || createDriverRequest.CarId < 0) && !string.IsNullOrWhiteSpace(createDriverRequest.RegistrationPlate))
+                {
+                    var cars = _carsService.GetAllCars();
+                    var matchedCar = cars.Find(c => string.Equals(c.RegistrationPlate?.Trim(), createDriverRequest.RegistrationPlate?.Trim(), System.StringComparison.OrdinalIgnoreCase));
+                    if (matchedCar == null)
+                    {
+                        return BadRequest(new
+                        {
+                            messageAr = "عذرًا، رقم لوحة السيارة غير موجود. يرجى اختيار لوحة صحيحة.",
+                            messageEn = "Sorry, car plate not found. Please choose a valid plate."
+                        });
+                    }
+                    createDriverRequest.CarId = matchedCar.Id;
+                }
 
                 var isMobileExist = await _usersService.IsMobileNumberExist($"972{createDriverRequest.MSISDN.Substring(createDriverRequest.MSISDN.Trim().Length - 9)}");
 

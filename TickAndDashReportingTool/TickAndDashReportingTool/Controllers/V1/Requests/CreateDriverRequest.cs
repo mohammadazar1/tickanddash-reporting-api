@@ -13,6 +13,9 @@ namespace TickAndDashReportingTool.Controllers.V1.Requests
         [Required]
         public int CarId { get; set; }
 
+        // Optional: allows admin UI to send Car Plate instead of CarId; API will resolve it
+        public string RegistrationPlate { get; set; } = "";
+
         [Required]
         public string Address { get; set; }
 
