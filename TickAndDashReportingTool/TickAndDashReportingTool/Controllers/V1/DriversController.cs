@@ -66,7 +66,21 @@ namespace TickAndDashReportingTool.Controllers.V1
                     createDriverRequest.CarId = matchedCar.Id;
                 }
 
-                var isMobileExist = await _usersService.IsMobileNumberExist($"972{createDriverRequest.MSISDN.Substring(createDriverRequest.MSISDN.Trim().Length - 9)}");
+                // Normalize MSISDN: digits only, last 9, prefixed with 972
+                var msisdnRaw = createDriverRequest.MSISDN ?? string.Empty;
+                var msisdnDigits = System.Text.RegularExpressions.Regex.Replace(msisdnRaw, "[^0-9]", "");
+                if (string.IsNullOrWhiteSpace(msisdnDigits) || msisdnDigits.Length < 9)
+                {
+                    return BadRequest(new
+                    {
+                        messageAr = "عذرًا، رقم الموبايل غير صالح. الرجاء إدخال 9 أرقام على الأقل.",
+                        messageEn = "Sorry, invalid mobile number. Please enter at least 9 digits."
+                    });
+                }
+                var msisdnLast9 = msisdnDigits.Substring(msisdnDigits.Length - 9);
+                var normalizedMsisdn = $"972{msisdnLast9}";
+
+                var isMobileExist = await _usersService.IsMobileNumberExist(normalizedMsisdn);
 
                 if (isMobileExist)
                 {
@@ -100,7 +114,12 @@ namespace TickAndDashReportingTool.Controllers.V1
             }
             catch (Exception)
             {
-                result = false;
+                // Return a clear message instead of silent false to help UI
+                return BadRequest(new
+                {
+                    messageAr = "حدث خطأ أثناء إنشاء السائق. يرجى التحقق من البيانات والمحاولة لاحقًا.",
+                    messageEn = "An error occurred while creating the driver. Please verify input and try again."
+                });
             }
 
             if (result)
